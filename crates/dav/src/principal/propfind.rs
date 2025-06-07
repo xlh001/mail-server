@@ -10,7 +10,8 @@ use common::{Server, auth::AccessToken};
 use dav_proto::schema::{
     Namespace,
     property::{
-        DavProperty, PrincipalProperty, Privilege, ReportSet, ResourceType, WebDavProperty,
+        DavProperty, DavValue, PrincipalProperty, Privilege, ReportSet, ResourceType,
+        WebDavProperty,
     },
     request::{DavPropertyValue, PropFind},
     response::{Href, MultiStatus, PropStat, Response},
@@ -19,7 +20,7 @@ use directory::{QueryBy, backend::internal::manage::ManageDirectory};
 use groupware::cache::GroupwareCache;
 use hyper::StatusCode;
 use jmap_proto::types::collection::Collection;
-use percent_encoding::NON_ALPHANUMERIC;
+use groupware::RFC_3986;
 use trc::AddContext;
 
 use crate::{
@@ -193,13 +194,25 @@ impl PrincipalPropFind for Server {
 
                             fields.push(DavPropertyValue::new(property.clone(), sync_token));
                         }
+                        WebDavProperty::GetCTag if !is_principal => {
+                            let ctag = self
+                                .fetch_dav_resources(access_token, account_id, collection.into())
+                                .await
+                                .caused_by(trc::location!())?
+                                .highest_change_id;
+
+                            fields.push(DavPropertyValue::new(
+                                property.clone(),
+                                DavValue::String(format!("\"{ctag}\"")),
+                            ));
+                        }
                         WebDavProperty::Owner => {
                             fields.push(DavPropertyValue::new(
                                 property.clone(),
                                 vec![Href(format!(
                                     "{}/{}/",
                                     DavResourceName::Principal.base_path(),
-                                    percent_encoding::utf8_percent_encode(&name, NON_ALPHANUMERIC),
+                                    percent_encoding::utf8_percent_encode(&name, RFC_3986),
                                 ))],
                             ));
                         }
@@ -244,7 +257,7 @@ impl PrincipalPropFind for Server {
                                 vec![Href(format!(
                                     "{}/{}/",
                                     DavResourceName::Principal.base_path(),
-                                    percent_encoding::utf8_percent_encode(&name, NON_ALPHANUMERIC),
+                                    percent_encoding::utf8_percent_encode(&name, RFC_3986),
                                 ))],
                             ));
                         }
@@ -254,7 +267,7 @@ impl PrincipalPropFind for Server {
                                 vec![Href(format!(
                                     "{}/{}/",
                                     DavResourceName::Cal.base_path(),
-                                    percent_encoding::utf8_percent_encode(&name, NON_ALPHANUMERIC),
+                                    percent_encoding::utf8_percent_encode(&name, RFC_3986),
                                 ))],
                             ));
                             response.set_namespace(Namespace::CalDav);
@@ -265,7 +278,7 @@ impl PrincipalPropFind for Server {
                                 vec![Href(format!(
                                     "{}/{}/",
                                     DavResourceName::Card.base_path(),
-                                    percent_encoding::utf8_percent_encode(&name, NON_ALPHANUMERIC),
+                                    percent_encoding::utf8_percent_encode(&name, RFC_3986),
                                 ))],
                             ));
                             response.set_namespace(Namespace::CardDav);
@@ -297,7 +310,7 @@ impl PrincipalPropFind for Server {
                 Href(format!(
                     "{}/{}/",
                     base_path,
-                    percent_encoding::utf8_percent_encode(&name, NON_ALPHANUMERIC),
+                    percent_encoding::utf8_percent_encode(&name, RFC_3986),
                 )),
                 prop_stats,
             ));
@@ -338,7 +351,7 @@ impl PrincipalPropFind for Server {
             Ok(Href(format!(
                 "{}/{}/",
                 DavResourceName::Principal.base_path(),
-                percent_encoding::utf8_percent_encode(&name, NON_ALPHANUMERIC),
+                percent_encoding::utf8_percent_encode(&name, RFC_3986),
             )))
         }
     }
