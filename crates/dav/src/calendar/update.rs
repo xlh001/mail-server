@@ -26,7 +26,7 @@ use jmap_proto::types::{
     acl::Acl,
     collection::{Collection, SyncCollection},
 };
-use store::write::BatchBuilder;
+use store::write::{BatchBuilder, now};
 use trc::AddContext;
 
 use crate::{
@@ -37,6 +37,7 @@ use crate::{
         uri::DavUriResource,
     },
     file::DavFileResource,
+    fix_percent_encoding,
 };
 
 use super::assert_is_unique_uid;
@@ -69,9 +70,11 @@ impl CalendarUpdateRequestHandler for Server {
             .fetch_dav_resources(access_token, account_id, SyncCollection::Calendar)
             .await
             .caused_by(trc::location!())?;
-        let resource_name = resource
-            .resource
-            .ok_or(DavError::Code(StatusCode::CONFLICT))?;
+        let resource_name = fix_percent_encoding(
+            resource
+                .resource
+                .ok_or(DavError::Code(StatusCode::CONFLICT))?,
+        );
 
         if bytes.len() > self.core.groupware.max_ical_size {
             return Err(DavError::Condition(DavErrorCondition::new(
@@ -96,7 +99,7 @@ impl CalendarUpdateRequestHandler for Server {
             }
         };
 
-        if let Some(resource) = resources.by_path(resource_name) {
+        if let Some(resource) = resources.by_path(resource_name.as_ref()) {
             if resource.is_container() {
                 return Err(DavError::Code(StatusCode::METHOD_NOT_ALLOWED));
             }
@@ -130,7 +133,7 @@ impl CalendarUpdateRequestHandler for Server {
                         collection: Collection::CalendarEvent,
                         document_id: Some(document_id),
                         etag: event.etag().into(),
-                        path: resource_name,
+                        path: resource_name.as_ref(),
                         ..Default::default()
                     }],
                     Default::default(),
@@ -173,13 +176,22 @@ impl CalendarUpdateRequestHandler for Server {
                 )));
             }
 
-            // Build node
+            // Obtain previous alarm
+            let prev_email_alarm = event.inner.data.next_alarm(now() as i64, Tz::Floating);
+
+            // Build event
+            let mut next_email_alarm = None;
             let mut new_event = event
                 .deserialize::<CalendarEvent>()
                 .caused_by(trc::location!())?;
             new_event.size = bytes.len() as u32;
-            new_event.data =
-                CalendarEventData::new(ical, Tz::Floating, self.core.groupware.max_ical_instances);
+            new_event.data = CalendarEventData::new(
+                ical,
+                Tz::Floating,
+                self.core.groupware.max_ical_instances,
+                &mut next_email_alarm,
+            );
+            let has_alarms = next_email_alarm.is_some();
 
             // Prepare write batch
             let mut batch = BatchBuilder::new();
@@ -187,10 +199,21 @@ impl CalendarUpdateRequestHandler for Server {
                 .update(access_token, event, account_id, document_id, &mut batch)
                 .caused_by(trc::location!())?
                 .etag();
+            if prev_email_alarm != next_email_alarm {
+                if let Some(prev_alarm) = prev_email_alarm {
+                    prev_alarm.delete_task(&mut batch);
+                }
+                if let Some(next_alarm) = next_email_alarm {
+                    next_alarm.write_task(&mut batch);
+                }
+            }
             self.commit_batch(batch).await.caused_by(trc::location!())?;
+            if has_alarms {
+                self.notify_task_queue();
+            }
 
             Ok(HttpResponse::new(StatusCode::NO_CONTENT).with_etag_opt(etag))
-        } else if let Some((Some(parent), name)) = resources.map_parent(resource_name) {
+        } else if let Some((Some(parent), name)) = resources.map_parent(resource_name.as_ref()) {
             if !parent.is_container() {
                 return Err(DavError::Code(StatusCode::METHOD_NOT_ALLOWED));
             }
@@ -214,7 +237,7 @@ impl CalendarUpdateRequestHandler for Server {
                     account_id,
                     collection: resource.collection,
                     document_id: Some(u32::MAX),
-                    path: resource_name,
+                    path: resource_name.as_ref(),
                     ..Default::default()
                 }],
                 Default::default(),
@@ -241,7 +264,8 @@ impl CalendarUpdateRequestHandler for Server {
             )
             .await?;
 
-            // Build node
+            // Build event
+            let mut next_email_alarm = None;
             let event = CalendarEvent {
                 names: vec![DavName {
                     name: name.to_string(),
@@ -251,10 +275,12 @@ impl CalendarUpdateRequestHandler for Server {
                     ical,
                     Tz::Floating,
                     self.core.groupware.max_ical_instances,
+                    &mut next_email_alarm,
                 ),
                 size: bytes.len() as u32,
                 ..Default::default()
             };
+            let has_alarms = next_email_alarm.is_some();
 
             // Prepare write batch
             let mut batch = BatchBuilder::new();
@@ -264,10 +290,21 @@ impl CalendarUpdateRequestHandler for Server {
                 .await
                 .caused_by(trc::location!())?;
             let etag = event
-                .insert(access_token, account_id, document_id, &mut batch)
+                .insert(
+                    access_token,
+                    account_id,
+                    document_id,
+                    next_email_alarm,
+                    &mut batch,
+                )
                 .caused_by(trc::location!())?
                 .etag();
+
             self.commit_batch(batch).await.caused_by(trc::location!())?;
+
+            if has_alarms {
+                self.notify_task_queue();
+            }
 
             Ok(HttpResponse::new(StatusCode::CREATED).with_etag_opt(etag))
         } else {
