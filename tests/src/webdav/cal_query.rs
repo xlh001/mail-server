@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -13,7 +13,7 @@ use calcard::{
 use dav_proto::schema::property::TimeRange;
 use groupware::{
     DavResourceName,
-    calendar::{CalendarEventData, dates::ExpandAlarm},
+    calendar::{CalendarEventData, alarm::ExpandAlarm},
 };
 use hyper::StatusCode;
 use store::write::serialize::rkyv_unarchive;
@@ -228,8 +228,8 @@ fn roundtrip_expansion(ics: &str, ignore_errors: bool) {
 
             for alarm in ical.alarms_for_id(e.comp_id) {
                 if let Some(alarm_time) = alarm
-                    .expand_alarm()
-                    .and_then(|delta| delta.to_timestamp(start, end, Tz::UTC))
+                    .expand_alarm(0, 0)
+                    .and_then(|alarm| alarm.delta.to_timestamp(start, end, Tz::UTC))
                 {
                     if alarm_time < min {
                         min = alarm_time;
@@ -256,7 +256,7 @@ fn roundtrip_expansion(ics: &str, ignore_errors: bool) {
         .collect::<Vec<_>>();
 
     // Verify min/max UTC timestamps
-    let event_data = CalendarEventData::new(ical, Tz::UTC, 100);
+    let event_data = CalendarEventData::new(ical, Tz::UTC, 100, &mut None);
     let from_time = event_data.base_time_utc as i64 + event_data.base_offset;
     let to_time = from_time + event_data.duration as i64;
 
@@ -727,7 +727,7 @@ const REPORT_10: &str = r#"<?xml version="1.0" encoding="utf-8" ?>
 
 const REPORT_10_RESPONSE: &str = r#"BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Stalwart Labs Ltd.//Stalwart Server//EN
+PRODID:-//Stalwart Labs LLC//Stalwart Server//EN
 BEGIN:VFREEBUSY
 DTSTART:20060104T140000Z
 DTEND:20060105T220000Z
@@ -747,7 +747,7 @@ const REPORT_11: &str = r#"<?xml version="1.0" encoding="utf-8" ?>
 
 const REPORT_11_RESPONSE: &str = r#"BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Stalwart Labs Ltd.//Stalwart Server//EN
+PRODID:-//Stalwart Labs LLC//Stalwart Server//EN
 BEGIN:VFREEBUSY
 DTSTART:20060101T000000Z
 DTEND:20060104T140000Z

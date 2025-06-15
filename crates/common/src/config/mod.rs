@@ -1,10 +1,8 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
-
-use std::{str::FromStr, sync::Arc};
 
 use self::{
     imap::ImapConfig, jmap::settings::JmapConfig, scripts::Scripting, smtp::SmtpConfig,
@@ -24,6 +22,7 @@ use hyper::{
 };
 use ring::signature::{EcdsaKeyPair, RsaKeyPair};
 use spamfilter::SpamFilterConfig;
+use std::{str::FromStr, sync::Arc};
 use store::{BlobBackend, BlobStore, FtsStore, InMemoryStore, Store, Stores};
 use telemetry::Metrics;
 use utils::config::{Config, utils::AsKey};
@@ -75,7 +74,7 @@ impl Core {
         let is_enterprise = false;
 
         // SPDX-SnippetBegin
-        // SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+        // SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
         // SPDX-License-Identifier: LicenseRef-SEL
         #[cfg(feature = "enterprise")]
         let enterprise =

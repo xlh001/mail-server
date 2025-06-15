@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -32,6 +32,7 @@ pub struct AccessToken {
     pub access_to: VecMap<u32, Bitmap<Collection>>,
     pub name: String,
     pub description: Option<String>,
+    pub locale: Option<String>,
     pub emails: Vec<String>,
     pub quota: u64,
     pub permissions: Permissions,

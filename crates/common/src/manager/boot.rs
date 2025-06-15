@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -506,7 +506,7 @@ pub fn build_ipc(config: &mut Config, has_pubsub: bool) -> (Ipc, IpcReceivers) {
             queue_tx,
             report_tx,
             broadcast_tx: has_pubsub.then_some(broadcast_tx),
-            index_tx: Arc::new(Notify::new()),
+            task_tx: Arc::new(Notify::new()),
             local_delivery_sm: Arc::new(Semaphore::new(
                 config
                     .property_or_default::<usize>("queue.threads.local", "10")

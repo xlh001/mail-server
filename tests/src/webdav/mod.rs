@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -47,6 +47,7 @@ use utils::config::Config;
 
 pub mod acl;
 pub mod basic;
+pub mod cal_alarm;
 pub mod cal_query;
 pub mod card_query;
 pub mod copy_move;
@@ -82,6 +83,7 @@ pub async fn webdav_tests() {
     acl::test(&handle).await;
     card_query::test(&handle).await;
     cal_query::test(&handle).await;
+    cal_alarm::test(&handle).await;
 
     // Print elapsed time
     let elapsed = start_time.elapsed();
@@ -1114,6 +1116,9 @@ size = 50000
 account = "1000/1m"
 authentication = "100/2s"
 anonymous = "100/1m"
+
+[calendar.alarms]
+minimum-interval = "1s"
 
 [store."auth"]
 type = "sqlite"

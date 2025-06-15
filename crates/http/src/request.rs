@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -37,7 +37,7 @@ use jmap::{
     websocket::upgrade::WebSocketUpgrade,
 };
 use jmap_proto::{
-    request::Request,
+    request::{Request, capability::Session},
     types::{blob::BlobId, id::Id},
 };
 use store::dispatch::lookup::KeyValue;
@@ -199,6 +199,26 @@ impl ParseHttp for Server {
                             .upgrade_websocket_connection(req, access_token, session)
                             .await;
                     }
+                    ("session", &Method::GET) => {
+                        return if req.headers().contains_key(header::AUTHORIZATION) {
+                            // Authenticate request
+                            let (_in_flight, access_token) =
+                                self.authenticate_headers(&req, &session, false).await?;
+
+                            self.handle_session_resource(
+                                ctx.resolve_response_url(self).await,
+                                access_token,
+                            )
+                            .await
+                            .map(|s| s.into_http_response())
+                        } else {
+                            Ok(Session::new(
+                                ctx.resolve_response_url(self).await,
+                                &self.core.jmap.capabilities,
+                            )
+                            .into_http_response())
+                        };
+                    }
                     (_, &Method::OPTIONS) => {
                         return Ok(JsonProblemResponse(StatusCode::NO_CONTENT).into_http_response());
                     }
@@ -241,14 +261,9 @@ impl ParseHttp for Server {
             }
             ".well-known" => match (path.next().unwrap_or_default(), req.method()) {
                 ("jmap", &Method::GET) => {
-                    // Authenticate request
-                    let (_in_flight, access_token) =
-                        self.authenticate_headers(&req, &session, false).await?;
-
-                    return self
-                        .handle_session_resource(ctx.resolve_response_url(self).await, access_token)
-                        .await
-                        .map(|s| s.into_http_response());
+                    return Ok(HttpResponse::new(StatusCode::TEMPORARY_REDIRECT)
+                        .with_no_cache()
+                        .with_location("/jmap/session"));
                 }
                 ("caldav", _) => {
                     return Ok(HttpResponse::new(StatusCode::TEMPORARY_REDIRECT)
@@ -394,7 +409,7 @@ impl ParseHttp for Server {
                                 params.get("token"),
                             ) {
                                 // SPDX-SnippetBegin
-                                // SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+                                // SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
                                 // SPDX-License-Identifier: LicenseRef-SEL
                                 #[cfg(feature = "enterprise")]
                                 (Some("telemetry"), Some("traces"), Some(token))
@@ -419,7 +434,7 @@ impl ParseHttp for Server {
 
                             return match grant_type {
                                 // SPDX-SnippetBegin
-                                // SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+                                // SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
                                 // SPDX-License-Identifier: LicenseRef-SEL
                                 #[cfg(feature = "enterprise")]
                                 GrantType::LiveTracing | GrantType::LiveMetrics => {
@@ -540,7 +555,7 @@ impl ParseHttp for Server {
             #[cfg(feature = "enterprise")]
             "logo.svg" if self.is_enterprise_edition() => {
                 // SPDX-SnippetBegin
-                // SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+                // SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
                 // SPDX-License-Identifier: LicenseRef-SEL
 
                 match self

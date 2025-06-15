@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -56,7 +56,7 @@ pub enum PrincipalData {
     ExternalMembers(Vec<String>),
     Urls(Vec<String>),
     PrincipalQuota(Vec<PrincipalQuota>),
-    Language(String),
+    Locale(String),
 }
 
 #[derive(rkyv::Archive, rkyv::Deserialize, rkyv::Serialize, Debug, Clone, PartialEq, Eq)]
@@ -373,6 +373,8 @@ pub enum Permission {
     DavCalQuery,
     DavCalMultiGet,
     DavCalFreeBusyQuery,
+
+    CalendarAlarms,
     // WARNING: add new ids at the end (TODO: use static ids)
 }
 

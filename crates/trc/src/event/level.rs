@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -345,6 +345,7 @@ impl EventType {
                 | SpamEvent::DnsblError
                 | SpamEvent::Pyzor
                 | SpamEvent::Train
+                | SpamEvent::TrainAccount
                 | SpamEvent::Classify
                 | SpamEvent::ClassifyError
                 | SpamEvent::TrainBalance
@@ -376,10 +377,9 @@ impl EventType {
                 HousekeeperEvent::Run | HousekeeperEvent::Schedule => Level::Debug,
             },
             EventType::TaskQueue(event) => match event {
-                TaskQueueEvent::Index => Level::Info,
                 TaskQueueEvent::BlobNotFound
-                | TaskQueueEvent::Locked
-                | TaskQueueEvent::BayesTrain
+                | TaskQueueEvent::TaskAcquired
+                | TaskQueueEvent::TaskLocked
                 | TaskQueueEvent::MetadataNotFound => Level::Debug,
             },
             EventType::Dmarc(_) => Level::Debug,
@@ -526,7 +526,8 @@ impl EventType {
                 | MessageIngestEvent::Spam
                 | MessageIngestEvent::ImapAppend
                 | MessageIngestEvent::JmapAppend
-                | MessageIngestEvent::Duplicate => Level::Info,
+                | MessageIngestEvent::Duplicate
+                | MessageIngestEvent::FtsIndex => Level::Info,
                 MessageIngestEvent::Error => Level::Error,
             },
             EventType::Security(_) => Level::Info,
@@ -535,7 +536,13 @@ impl EventType {
                 AiEvent::ApiError => Level::Warn,
             },
             EventType::WebDav(_) => Level::Debug,
-            EventType::Calendar(CalendarEvent::RuleExpansionError) => Level::Debug,
+            EventType::Calendar(event) => match event {
+                CalendarEvent::AlarmSent => Level::Info,
+                CalendarEvent::AlarmFailed => Level::Warn,
+                CalendarEvent::RuleExpansionError
+                | CalendarEvent::AlarmSkipped
+                | CalendarEvent::AlarmRecipientOverride => Level::Debug,
+            },
         }
     }
 }

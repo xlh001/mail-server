@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -10,14 +10,14 @@ use common::{
     manager::boot::{BootManager, IpcReceivers},
 };
 use housekeeper::spawn_housekeeper;
-use index::spawn_email_queue_task;
 use state_manager::manager::spawn_state_manager;
 use std::sync::Arc;
+use task_manager::spawn_task_manager;
 
 pub mod broadcast;
 pub mod housekeeper;
-pub mod index;
 pub mod state_manager;
+pub mod task_manager;
 
 pub trait StartServices: Sync + Send {
     fn start_services(&mut self) -> impl Future<Output = ()> + Send;
@@ -62,7 +62,7 @@ impl SpawnServices for IpcReceivers {
             spawn_broadcast_publisher(inner.clone(), event_rx);
         }
 
-        // Spawn index task
-        spawn_email_queue_task(inner);
+        // Spawn task manager
+        spawn_task_manager(inner);
     }
 }

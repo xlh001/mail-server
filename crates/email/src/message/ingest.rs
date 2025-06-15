@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -204,17 +204,18 @@ impl EmailIngest for Server {
                             .and_then(|s| s.address())
                             .and_then(sanitize_email)
                         {
-                            if !self
-                                .store()
-                                .filter(
-                                    account_id,
-                                    Collection::ContactCard,
-                                    vec![Filter::eq(IDX_EMAIL, sender.into_bytes())],
-                                )
-                                .await
-                                .caused_by(trc::location!())?
-                                .results
-                                .is_empty()
+                            if sender != deliver_to
+                                && !self
+                                    .store()
+                                    .filter(
+                                        account_id,
+                                        Collection::ContactCard,
+                                        vec![Filter::eq(IDX_EMAIL, sender.into_bytes())],
+                                    )
+                                    .await
+                                    .caused_by(trc::location!())?
+                                    .results
+                                    .is_empty()
                             {
                                 is_spam = false;
                                 if self
@@ -530,7 +531,7 @@ impl EmailIngest for Server {
                 .log_container_insert(SyncCollection::Thread);
         }
 
-        let seq = self.generate_snowflake_id();
+        let due = now();
         let document_id = self
             .store()
             .assign_document_ids(account_id, Collection::Email, 1)
@@ -554,7 +555,7 @@ impl EmailIngest for Server {
             .caused_by(trc::location!())?
             .set(
                 ValueClass::TaskQueue(TaskQueueClass::IndexEmail {
-                    seq,
+                    due,
                     hash: blob_id.hash.clone(),
                 }),
                 vec![],
@@ -564,7 +565,7 @@ impl EmailIngest for Server {
         if let Some(learn_spam) = train_spam {
             batch.set(
                 ValueClass::TaskQueue(TaskQueueClass::BayesTrain {
-                    seq,
+                    due,
                     hash: blob_id.hash.clone(),
                     learn_spam,
                 }),

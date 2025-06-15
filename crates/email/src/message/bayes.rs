@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -12,7 +12,7 @@ use mail_parser::Message;
 use spam_filter::{
     SpamFilterInput, analysis::init::SpamFilterInit, modules::bayes::BayesClassifier,
 };
-use store::write::TaskQueueClass;
+use store::write::{TaskQueueClass, now};
 use trc::StoreEvent;
 use utils::BlobHash;
 
@@ -74,7 +74,7 @@ impl EmailBayesTrain for Server {
             })?;
 
         Ok(TaskQueueClass::BayesTrain {
-            seq: self.generate_snowflake_id(),
+            due: now(),
             hash: BlobHash::from(&metadata.unarchive::<MessageMetadata>()?.blob_hash),
             learn_spam,
         })

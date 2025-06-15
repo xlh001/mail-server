@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -246,6 +246,7 @@ impl Permission {
             Permission::DavCalQuery => "Search for calendar entries matching criteria",
             Permission::DavCalMultiGet => "Retrieve multiple calendar entries in a single request",
             Permission::DavCalFreeBusyQuery => "Query free/busy time information for scheduling",
+            Permission::CalendarAlarms => "Receive calendar alarms via e-mail",
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2020 Stalwart Labs Ltd <hello@stalw.art>
+ * SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
@@ -196,13 +196,18 @@ pub enum ValueClass {
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
 pub enum TaskQueueClass {
     IndexEmail {
-        seq: u64,
+        due: u64,
         hash: BlobHash,
     },
     BayesTrain {
-        seq: u64,
+        due: u64,
         hash: BlobHash,
         learn_spam: bool,
+    },
+    SendAlarm {
+        due: u64,
+        event_id: u16,
+        alarm_id: u16,
     },
 }
 
