@@ -145,6 +145,7 @@ pub async fn test(params: &mut JMAPTest) {
     let john_client = Client::new()
         .credentials(Credentials::bearer(&token))
         .accept_invalid_certs(true)
+        .follow_redirects(["127.0.0.1"])
         .connect("https://127.0.0.1:8899")
         .await
         .unwrap();
@@ -323,6 +324,7 @@ pub async fn test(params: &mut JMAPTest) {
     let john_client = Client::new()
         .credentials(Credentials::bearer(&token))
         .accept_invalid_certs(true)
+        .follow_redirects(["127.0.0.1"])
         .connect("https://127.0.0.1:8899")
         .await
         .unwrap();
@@ -495,6 +497,7 @@ async fn assert_unauthorized(base_url: &str, token: &str) {
     match Client::new()
         .credentials(Credentials::bearer(token))
         .accept_invalid_certs(true)
+        .follow_redirects(["127.0.0.1"])
         .connect(base_url)
         .await
     {

@@ -11,7 +11,7 @@ use crate::smtp::{
     session::TestSession,
 };
 use mail_auth::MX;
-use smtp::queue::{Message, QueueEnvelope, throttle::IsAllowed};
+use smtp::queue::{DomainPart, Message, QueueEnvelope, Recipient, throttle::IsAllowed};
 use std::{
     net::{IpAddr, Ipv4Addr},
     time::{Duration, Instant},
@@ -69,6 +69,9 @@ async fn throttle_outbound() {
     // Build test message
     let mut test_message = new_message(0).message;
     test_message.return_path_domain = "foobar.org".into();
+    test_message
+        .recipients
+        .push(build_rcpt("bill@test.org", 0, 0, 0));
 
     let mut local = TestSMTP::new("smtp_throttle_outbound", CONFIG).await;
 
@@ -88,9 +91,13 @@ async fn throttle_outbound() {
     // Throttle sender
     let throttle = &core.core.smtp.queue.outbound_limiters;
     for t in &throttle.sender {
-        core.is_allowed(t, &QueueEnvelope::test(&test_message, 0, ""), 0)
-            .await
-            .unwrap();
+        core.is_allowed(
+            t,
+            &QueueEnvelope::test(&test_message, &test_message.recipients[0], ""),
+            0,
+        )
+        .await
+        .unwrap();
     }
 
     // Expect concurrency throttle for sender domain 'foobar.org'
@@ -105,10 +112,15 @@ async fn throttle_outbound() {
     // Expect rate limit throttle for sender domain 'foobar.net'
     test_message.return_path_domain = "foobar.net".into();
     for t in &throttle.sender {
-        core.is_allowed(t, &QueueEnvelope::test(&test_message, 0, ""), 0)
-            .await
-            .unwrap();
+        core.is_allowed(
+            t,
+            &QueueEnvelope::test(&test_message, &test_message.recipients[0], ""),
+            0,
+        )
+        .await
+        .unwrap();
     }
+    test_message.recipients.clear();
 
     session
         .send_message("john@foobar.net", &["bill@test.org"], "test:no_dkim", "250")
@@ -129,9 +141,13 @@ async fn throttle_outbound() {
         .recipients
         .push(build_rcpt("test@example.org", 0, 0, 0));
     for t in &throttle.rcpt {
-        core.is_allowed(t, &QueueEnvelope::test(&test_message, 0, ""), 0)
-            .await
-            .unwrap();
+        core.is_allowed(
+            t,
+            &QueueEnvelope::test(&test_message, &test_message.recipients[0], ""),
+            0,
+        )
+        .await
+        .unwrap();
     }
 
     /*session
@@ -155,9 +171,13 @@ async fn throttle_outbound() {
         .recipients
         .push(build_rcpt("test@example.net", 0, 0, 0));
     for t in &throttle.rcpt {
-        core.is_allowed(t, &QueueEnvelope::test(&test_message, 1, ""), 0)
-            .await
-            .unwrap();
+        core.is_allowed(
+            t,
+            &QueueEnvelope::test(&test_message, &test_message.recipients[1], ""),
+            0,
+        )
+        .await
+        .unwrap();
     }
 
     session
@@ -197,9 +217,13 @@ async fn throttle_outbound() {
         .push(build_rcpt("test@test.org", 0, 0, 0));
 
     for t in &throttle.remote {
-        core.is_allowed(t, &QueueEnvelope::test(&test_message, 2, "mx.test.org"), 0)
-            .await
-            .unwrap();
+        core.is_allowed(
+            t,
+            &QueueEnvelope::test(&test_message, &test_message.recipients[2], "mx.test.org"),
+            0,
+        )
+        .await
+        .unwrap();
     }
 
     /*session
@@ -227,9 +251,13 @@ async fn throttle_outbound() {
         Instant::now() + Duration::from_secs(10),
     );
     for t in &throttle.remote {
-        core.is_allowed(t, &QueueEnvelope::test(&test_message, 1, "mx.test.net"), 0)
-            .await
-            .unwrap();
+        core.is_allowed(
+            t,
+            &QueueEnvelope::test(&test_message, &test_message.recipients[1], "mx.test.net"),
+            0,
+        )
+        .await
+        .unwrap();
     }
 
     session
@@ -248,17 +276,18 @@ async fn throttle_outbound() {
 }
 
 pub trait TestQueueEnvelope<'x> {
-    fn test(message: &'x Message, current_domain: usize, mx: &'x str) -> Self;
+    fn test(message: &'x Message, rcpt: &'x Recipient, mx: &'x str) -> Self;
 }
 
 impl<'x> TestQueueEnvelope<'x> for QueueEnvelope<'x> {
-    fn test(message: &'x Message, current_rcpt: usize, mx: &'x str) -> Self {
+    fn test(message: &'x Message, rcpt: &'x Recipient, mx: &'x str) -> Self {
         QueueEnvelope {
             message,
             mx,
             remote_ip: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
             local_ip: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
-            current_rcpt,
+            domain: rcpt.address_lcase.domain_part(),
+            rcpt,
         }
     }
 }

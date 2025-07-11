@@ -4,18 +4,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use std::{
-    sync::Arc,
-    thread::sleep,
-    time::{Duration, Instant},
-};
-
-use rand::Rng;
-use rocksdb::{
-    BoundColumnFamily, ErrorKind, IteratorMode, OptimisticTransactionDB,
-    OptimisticTransactionOptions, WriteOptions,
-};
-
 use super::{CF_INDEXES, CF_LOGS, CfHandle, RocksDbStore, into_error};
 use crate::{
     Deserialize, IndexKey, Key, LogKey, SUBSPACE_COUNTER, SUBSPACE_IN_MEMORY_COUNTER,
@@ -24,6 +12,16 @@ use crate::{
     write::{
         AssignedIds, Batch, MAX_COMMIT_ATTEMPTS, MAX_COMMIT_TIME, Operation, ValueClass, ValueOp,
     },
+};
+use rand::Rng;
+use rocksdb::{
+    BoundColumnFamily, ErrorKind, IteratorMode, OptimisticTransactionDB,
+    OptimisticTransactionOptions, WriteOptions,
+};
+use std::{
+    sync::Arc,
+    thread::sleep,
+    time::{Duration, Instant},
 };
 
 impl RocksDbStore {
@@ -222,6 +220,12 @@ impl RocksDBTransaction<'_, '_> {
                                 })?;
                             txn.put_cf(&cf, &key, &num.to_le_bytes()[..])?;
                             result.push_counter_id(num);
+                        }
+                        ValueOp::Merge(merge) => {
+                            let value = (merge.fnc)(
+                                txn.get_pinned_for_update_cf(&cf, &key, true)?.as_deref(),
+                            )?;
+                            txn.put_cf(&cf, &key, value)?;
                         }
                         ValueOp::Clear => {
                             txn.delete_cf(&cf, &key)?;

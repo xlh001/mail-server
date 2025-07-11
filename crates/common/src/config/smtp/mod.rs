@@ -98,7 +98,7 @@ pub(crate) const SMTP_RCPT_TO_VARS: &[u32; 17] = &[
     V_ASN,
     V_COUNTRY,
 ];
-pub(crate) const SMTP_QUEUE_HOST_VARS: &[u32; 14] = &[
+pub(crate) const SMTP_QUEUE_HOST_VARS: &[u32; 20] = &[
     V_SENDER,
     V_SENDER_DOMAIN,
     V_RECIPIENT_DOMAIN,
@@ -113,8 +113,14 @@ pub(crate) const SMTP_QUEUE_HOST_VARS: &[u32; 14] = &[
     V_QUEUE_EXPIRES_IN,
     V_QUEUE_LAST_STATUS,
     V_QUEUE_LAST_ERROR,
+    V_QUEUE_NAME,
+    V_QUEUE_AGE,
+    V_RECEIVED_FROM_IP,
+    V_RECEIVED_VIA_PORT,
+    V_SOURCE,
+    V_SIZE,
 ];
-pub(crate) const SMTP_QUEUE_RCPT_VARS: &[u32; 13] = &[
+pub(crate) const SMTP_QUEUE_RCPT_VARS: &[u32; 17] = &[
     V_RECIPIENT,
     V_RECIPIENT_DOMAIN,
     V_RECIPIENTS,
@@ -126,8 +132,12 @@ pub(crate) const SMTP_QUEUE_RCPT_VARS: &[u32; 13] = &[
     V_QUEUE_EXPIRES_IN,
     V_QUEUE_LAST_STATUS,
     V_QUEUE_LAST_ERROR,
-    V_REMOTE_IP,
-    V_LOCAL_PORT,
+    V_QUEUE_NAME,
+    V_QUEUE_AGE,
+    V_RECEIVED_FROM_IP,
+    V_RECEIVED_VIA_PORT,
+    V_SOURCE,
+    V_SIZE,
 ];
 pub(crate) const SMTP_QUEUE_SENDER_VARS: &[u32; 8] = &[
     V_SENDER,

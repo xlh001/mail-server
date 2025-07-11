@@ -68,7 +68,7 @@ impl HasQueueQuota for Server {
                         && !self
                             .check_quota(
                                 quota,
-                                &QueueEnvelope::new_rcpt(&message.message, rcpt_idx),
+                                &QueueEnvelope::new(&message.message, rcpt),
                                 message.message.size,
                                 ((rcpt_idx + 1) << 32) as u64,
                                 &mut quota_keys,
@@ -90,11 +90,11 @@ impl HasQueueQuota for Server {
         }
 
         for quota in &self.core.smtp.queue.quota.rcpt {
-            for rcpt_idx in 0..message.message.recipients.len() {
+            for (rcpt_idx, rcpt) in message.message.recipients.iter().enumerate() {
                 if !self
                     .check_quota(
                         quota,
-                        &QueueEnvelope::new_rcpt(&message.message, rcpt_idx),
+                        &QueueEnvelope::new(&message.message, rcpt),
                         message.message.size,
                         (rcpt_idx + 1) as u64,
                         &mut quota_keys,

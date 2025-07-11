@@ -4,25 +4,25 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use crate::calendar::migrate_calendar_events;
+use crate::{
+    calendar::migrate_calendar_events,
+    queue::{migrate_queue_v011, migrate_queue_v012},
+    tasks::migrate_tasks_v011,
+};
 use changelog::reset_changelog;
 use common::{DATABASE_SCHEMA_VERSION, KV_LOCK_HOUSEKEEPER, Server};
 use jmap_proto::types::{collection::Collection, property::Property};
 use principal::{migrate_principal, migrate_principals};
-use queue::migrate_queue;
 use report::migrate_reports;
 use std::time::Duration;
 use store::{
     Deserialize, IterateParams, SUBSPACE_PROPERTY, SUBSPACE_QUEUE_MESSAGE, SUBSPACE_REPORT_IN,
-    SUBSPACE_REPORT_OUT, SUBSPACE_TASK_QUEUE, SerializeInfallible, U32_LEN, Value, ValueKey,
+    SUBSPACE_REPORT_OUT, SerializeInfallible, U32_LEN, Value, ValueKey,
     dispatch::{DocumentSet, lookup::KeyValue},
     rand::{self, seq::SliceRandom},
-    write::{
-        AnyClass, AnyKey, BatchBuilder, TaskQueueClass, ValueClass, key::DeserializeBigEndian, now,
-    },
+    write::{AnyClass, AnyKey, BatchBuilder, ValueClass, key::DeserializeBigEndian},
 };
 use trc::AddContext;
-use utils::BlobHash;
 
 pub mod calendar;
 pub mod changelog;
@@ -37,6 +37,7 @@ pub mod queue;
 pub mod report;
 pub mod sieve;
 pub mod submission;
+pub mod tasks;
 pub mod threads;
 
 const LOCK_WAIT_TIME_ACCOUNT: u64 = 3 * 60;
@@ -45,7 +46,14 @@ const LOCK_RETRY_TIME: Duration = Duration::from_secs(30);
 
 pub async fn try_migrate(server: &Server) -> trc::Result<()> {
     if std::env::var("FORCE_MIGRATE_QUEUE").is_ok() {
-        migrate_queue(server).await.caused_by(trc::location!())?;
+        migrate_queue_v012(server)
+            .await
+            .caused_by(trc::location!())?;
+        return Ok(());
+    } else if std::env::var("FORCE_MIGRATE_QUEUE_V011").is_ok() {
+        migrate_queue_v011(server)
+            .await
+            .caused_by(trc::location!())?;
         return Ok(());
     } else if let Some(account_id) = std::env::var("FORCE_MIGRATE_ACCOUNT")
         .ok()
@@ -56,9 +64,6 @@ pub async fn try_migrate(server: &Server) -> trc::Result<()> {
             .caused_by(trc::location!())?;
         return Ok(());
     }
-
-    let todo =
-        "migrate queue + new LegacyRecipient with domain_idx u32 / size u64 + migrate error enum";
 
     match server
         .store()
@@ -73,7 +78,14 @@ pub async fn try_migrate(server: &Server) -> trc::Result<()> {
             return Ok(());
         }
         Some(1) => {
-            migrate_v0_12_0(server).await.caused_by(trc::location!())?;
+            migrate_v0_12(server, true)
+                .await
+                .caused_by(trc::location!())?;
+        }
+        Some(2) => {
+            migrate_v0_12(server, false)
+                .await
+                .caused_by(trc::location!())?;
         }
         Some(version) => {
             panic!(
@@ -105,7 +117,7 @@ pub async fn try_migrate(server: &Server) -> trc::Result<()> {
     Ok(())
 }
 
-async fn migrate_v0_12_0(server: &Server) -> trc::Result<()> {
+async fn migrate_v0_12(server: &Server, migrate_tasks: bool) -> trc::Result<()> {
     let force_lock = std::env::var("FORCE_LOCK").is_ok();
     let in_memory = server.in_memory_store();
 
@@ -120,76 +132,14 @@ async fn migrate_v0_12_0(server: &Server) -> trc::Result<()> {
                 .await
                 .caused_by(trc::location!())?
         {
-            let from_key = ValueKey::<ValueClass> {
-                account_id: 0,
-                collection: 0,
-                document_id: 0,
-                class: ValueClass::TaskQueue(TaskQueueClass::IndexEmail {
-                    due: 0,
-                    hash: BlobHash::default(),
-                }),
-            };
-            let to_key = ValueKey::<ValueClass> {
-                account_id: u32::MAX,
-                collection: u8::MAX,
-                document_id: u32::MAX,
-                class: ValueClass::TaskQueue(TaskQueueClass::IndexEmail {
-                    due: u64::MAX,
-                    hash: BlobHash::default(),
-                }),
-            };
-
-            let now = now();
-            let mut migrate_tasks = Vec::new();
-            server
-                .core
-                .storage
-                .data
-                .iterate(
-                    IterateParams::new(from_key, to_key).ascending(),
-                    |key, value| {
-                        let due = key.deserialize_be_u64(0)?;
-
-                        if due > now {
-                            migrate_tasks.push((key.to_vec(), value.to_vec()));
-                        }
-
-                        Ok(true)
-                    },
-                )
+            migrate_queue_v012(server)
                 .await
                 .caused_by(trc::location!())?;
 
-            if !migrate_tasks.is_empty() {
-                let num_migrated = migrate_tasks.len();
-                let mut batch = BatchBuilder::new();
-                for (key, value) in migrate_tasks {
-                    let mut new_key = key.clone();
-                    new_key[0..8].copy_from_slice(&now.to_be_bytes());
-
-                    batch
-                        .clear(ValueClass::Any(AnyClass {
-                            subspace: SUBSPACE_TASK_QUEUE,
-                            key,
-                        }))
-                        .set(
-                            ValueClass::Any(AnyClass {
-                                subspace: SUBSPACE_TASK_QUEUE,
-                                key: new_key,
-                            }),
-                            value,
-                        );
-                }
-                server
-                    .store()
-                    .write(batch.build_all())
+            if migrate_tasks {
+                migrate_tasks_v011(server)
                     .await
                     .caused_by(trc::location!())?;
-
-                trc::event!(
-                    Server(trc::ServerEvent::Startup),
-                    Details = format!("Migrated {num_migrated} tasks")
-                );
             }
 
             in_memory
@@ -237,7 +187,9 @@ async fn migrate_v0_11(server: &Server) -> trc::Result<()> {
                 .caused_by(trc::location!())?
                 .is_none()
             {
-                migrate_queue(server).await.caused_by(trc::location!())?;
+                migrate_queue_v011(server)
+                    .await
+                    .caused_by(trc::location!())?;
                 migrate_reports(server).await.caused_by(trc::location!())?;
                 reset_changelog(server).await.caused_by(trc::location!())?;
                 principal_ids = migrate_principals(server)

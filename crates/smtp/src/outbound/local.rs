@@ -7,8 +7,9 @@
 use crate::{
     outbound::DeliveryResult,
     queue::{
-        DMARC_AUTHENTICATED, DomainPart, Error, ErrorDetails, HostResponse, MessageSource,
-        MessageWrapper, Status, UnexpectedResponse, quota::HasQueueQuota, spool::SmtpSpool,
+        DomainPart, Error, ErrorDetails, FROM_AUTHENTICATED, FROM_UNAUTHENTICATED_DMARC,
+        HostResponse, MessageSource, MessageWrapper, Status, UnexpectedResponse,
+        quota::HasQueueQuota, spool::SmtpSpool,
     },
     reporting::SmtpReporting,
 };
@@ -37,7 +38,9 @@ impl MessageWrapper {
         let delivery_result = server
             .deliver_message(IngestMessage {
                 sender_address: self.message.return_path_lcase.clone(),
-                sender_authenticated: self.message.flags & DMARC_AUTHENTICATED != 0,
+                sender_authenticated: self.message.flags
+                    & (FROM_UNAUTHENTICATED_DMARC | FROM_AUTHENTICATED)
+                    != 0,
                 recipients: recipient_addresses,
                 message_blob: self.message.blob_hash.clone(),
                 message_size: self.message.size,

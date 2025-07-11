@@ -8,7 +8,7 @@ use super::{
     Batch, BatchBuilder, BitmapClass, ChangedCollection, IntoOperations, Operation, TagValue,
     ValueClass, ValueOp, assert::ToAssertValue, log::VanishedItem,
 };
-use crate::{SerializeInfallible, U32_LEN};
+use crate::{SerializeInfallible, U32_LEN, write::MergeFn};
 use utils::map::{bitmap::ShortId, vec_map::VecMap};
 
 impl BatchBuilder {
@@ -189,6 +189,21 @@ impl BatchBuilder {
             },
         });
         self.batch_ops += 1;
+        self
+    }
+
+    pub fn merge(
+        &mut self,
+        class: impl Into<ValueClass>,
+        value: impl Fn(Option<&[u8]>) -> trc::Result<Vec<u8>> + Sync + Send + 'static,
+    ) -> &mut Self {
+        self.ops.push(Operation::Value {
+            class: class.into(),
+            op: ValueOp::Merge(MergeFn {
+                fnc: Box::new(value),
+                fnc_id: rand::random::<u64>(),
+            }),
+        });
         self
     }
 

@@ -200,6 +200,15 @@ pub fn spawn_housekeeper(inner: Arc<Inner>, mut rx: mpsc::Receiver<HousekeeperEv
                             }
                             // SPDX-SnippetEnd
 
+                            // Reload queue settings
+                            server
+                                .inner
+                                .ipc
+                                .queue_tx
+                                .send(common::ipc::QueueEvent::ReloadSettings)
+                                .await
+                                .ok();
+
                             // Reload ACME certificates
                             tokio::spawn(async move {
                                 for provider in server.core.acme.providers.values() {

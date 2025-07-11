@@ -9,6 +9,7 @@ use std::time::Duration;
 use crate::smtp::{
     TestSMTP,
     inbound::{TestMessage, TestQueueEvent},
+    queue::QueuedEvents,
     session::{TestSession, VerifyResponse},
 };
 use ahash::AHashSet;
@@ -16,7 +17,7 @@ use common::{
     config::smtp::queue::QueueName,
     ipc::{QueueEvent, QueueEventStatus},
 };
-use smtp::queue::spool::SmtpSpool;
+use smtp::queue::spool::{QUEUE_REFRESH, SmtpSpool};
 use store::write::now;
 
 const CONFIG: &str = r#"
@@ -105,30 +106,33 @@ async fn queue_retry() {
 
     loop {
         match qr.try_read_event().await {
-            Some(QueueEvent::WorkerDone { queue_id, status }) => {
+            Some(QueueEvent::WorkerDone {
+                queue_id, status, ..
+            }) => {
                 in_fight.remove(&queue_id);
                 match &status {
                     QueueEventStatus::Completed | QueueEventStatus::Deferred => (),
                     _ => panic!("unexpected status {queue_id}: {status:?}"),
                 }
             }
-            Some(QueueEvent::Refresh) => (),
+            Some(QueueEvent::Refresh) | Some(QueueEvent::ReloadSettings) => (),
             None | Some(QueueEvent::Stop) | Some(QueueEvent::Paused(_)) => break,
         }
 
         let now = now();
-        let events = core.next_event().await;
-
-        if events.is_empty() && in_fight.is_empty() {
-            break;
+        let mut events = core.all_queued_messages().await;
+        if events.messages.is_empty() {
+            if events.next_refresh < now + QUEUE_REFRESH {
+                tokio::time::sleep(Duration::from_secs(events.next_refresh - now)).await;
+                events = core.all_queued_messages().await;
+            } else if in_fight.is_empty() {
+                break;
+            }
         }
 
-        for event in events {
+        for event in events.messages {
             if in_fight.contains(&event.queue_id) {
                 continue;
-            }
-            if event.due > now {
-                tokio::time::sleep(Duration::from_secs(event.due - now)).await;
             }
 
             let message = core

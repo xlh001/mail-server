@@ -56,6 +56,7 @@ async fn generate_dsn() {
     let mut message = MessageWrapper {
         queue_id: 0,
         span_id: 0,
+        is_multi_queue: false,
         queue_name: QueueName::default(),
         message: Message {
             size,

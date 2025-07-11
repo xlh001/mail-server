@@ -86,7 +86,7 @@ pub struct Dsn {
 
 #[derive(Clone, Debug)]
 pub struct VirtualQueue {
-    pub threads: u32,
+    pub threads: usize,
 }
 
 #[derive(Clone, Debug)]
@@ -252,7 +252,6 @@ impl QueueConfig {
                 *value = if_block;
             }
         }
-        let todo = "test parsing";
 
         // Parse strategies
         queue.virtual_queues = parse_virtual_queues(config);
@@ -369,7 +368,7 @@ fn parse_virtual_queues(config: &mut Config) -> AHashMap<QueueName, VirtualQueue
 fn parse_virtual_queue(config: &mut Config, id: &str) -> Option<VirtualQueue> {
     Some(VirtualQueue {
         threads: config
-            .property_require::<u32>(("queue.virtual", id, "threads-per-node"))
+            .property_require::<usize>(("queue.virtual", id, "threads-per-node"))
             .unwrap_or(1),
     })
 }
@@ -919,7 +918,9 @@ impl QueueName {
     }
 
     pub fn as_str(&self) -> &str {
-        std::str::from_utf8(&self.0).unwrap_or_default()
+        std::str::from_utf8(&self.0)
+            .unwrap_or_default()
+            .trim_end_matches('\0')
     }
 
     pub fn into_inner(self) -> [u8; 8] {

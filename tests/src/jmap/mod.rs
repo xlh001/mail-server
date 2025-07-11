@@ -376,6 +376,7 @@ async fn init_jmap_tests(store_id: &str, delete_if_exists: bool) -> JMAPTest {
         .credentials(Credentials::basic("admin", "secret"))
         .timeout(Duration::from_secs(3600))
         .accept_invalid_certs(true)
+        .follow_redirects(["127.0.0.1"])
         .connect("https://127.0.0.1:8899")
         .await
         .unwrap();
@@ -496,6 +497,7 @@ pub async fn test_account_login(login: &str, secret: &str) -> Client {
         .credentials(Credentials::basic(login, secret))
         .timeout(Duration::from_secs(5))
         .accept_invalid_certs(true)
+        .follow_redirects(["127.0.0.1"])
         .connect("https://127.0.0.1:8899")
         .await
         .unwrap()

@@ -15,7 +15,7 @@ use crate::outbound::mta_sts::lookup::MtaStsLookup;
 use crate::outbound::mta_sts::verify::VerifyPolicy;
 use crate::outbound::{client::StartTlsResult, dane::verify::TlsaVerify};
 use crate::queue::dsn::SendDsn;
-use crate::queue::spool::{LOCK_EXPIRY, SmtpSpool};
+use crate::queue::spool::SmtpSpool;
 use crate::queue::throttle::IsAllowed;
 use crate::queue::{
     DomainPart, Error, FROM_REPORT, HostResponse, MessageWrapper, QueueEnvelope, QueuedMessage,
@@ -33,7 +33,6 @@ use mail_auth::{
     mta_sts::TlsRpt,
     report::tlsrpt::{FailureDetails, ResultType},
 };
-use rand::Rng;
 use smtp_proto::MAIL_REQUIRETLS;
 use std::sync::Arc;
 use std::{
@@ -49,7 +48,7 @@ impl QueuedMessage {
         tokio::spawn(async move {
             // Lock queue event
             let queue_id = self.queue_id;
-            let status = if server.try_lock_event(queue_id).await {
+            let status = if server.try_lock_event(queue_id, self.queue_name).await {
                 if let Some(mut message) = server.read_message(queue_id, self.queue_name).await {
                     // Generate span id
                     message.span_id = server.inner.data.span_id_gen.generate();
@@ -59,7 +58,7 @@ impl QueuedMessage {
                         Delivery(DeliveryEvent::AttemptStart),
                         SpanId = message.span_id,
                         QueueId = message.queue_id,
-                        QueueName = message.queue_name.as_str().to_string(),
+                        QueueName = message.queue_name.to_string(),
                         From = if !message.message.return_path.is_empty() {
                             trc::Value::String(message.message.return_path.as_str().into())
                         } else {
@@ -96,7 +95,7 @@ impl QueuedMessage {
                     );
 
                     // Unlock event
-                    server.unlock_event(queue_id).await;
+                    server.unlock_event(queue_id, self.queue_name).await;
 
                     queue_event
                 } else {
@@ -118,14 +117,12 @@ impl QueuedMessage {
                     }
 
                     // Unlock event
-                    server.unlock_event(queue_id).await;
+                    server.unlock_event(queue_id, self.queue_name).await;
 
                     QueueEventStatus::Completed
                 }
             } else {
-                QueueEventStatus::Locked {
-                    until: now() + LOCK_EXPIRY + rand::rng().random_range(5..10),
-                }
+                QueueEventStatus::Locked
             };
 
             // Notify queue manager
@@ -133,7 +130,11 @@ impl QueuedMessage {
                 .inner
                 .ipc
                 .queue_tx
-                .send(QueueEvent::WorkerDone { queue_id, status })
+                .send(QueueEvent::WorkerDone {
+                    queue_id,
+                    queue_name: self.queue_name,
+                    status,
+                })
                 .await
                 .is_err()
             {
@@ -185,23 +186,14 @@ impl QueuedMessage {
                 .is_allowed(throttle, &message.message, message.span_id)
                 .await
             {
-                // Save changes to disk
-                let now = now();
-                let next_event = std::cmp::min(
-                    retry_at,
-                    message
-                        .message
-                        .next_event_after(self.queue_name.into(), now)
-                        .unwrap_or(u64::MAX),
-                );
-
                 trc::event!(
                     Delivery(DeliveryEvent::RateLimitExceeded),
                     Id = throttle.id.clone(),
                     SpanId = span_id,
-                    NextRetry = trc::Value::Timestamp(next_event)
+                    NextRetry = trc::Value::Timestamp(retry_at)
                 );
 
+                let now = now();
                 for rcpt in message.message.recipients.iter_mut() {
                     if matches!(
                         &rcpt.status,
@@ -234,7 +226,7 @@ impl QueuedMessage {
             ) && rcpt.retry.due <= now_
                 && rcpt.queue == message.queue_name
             {
-                let envelope = QueueEnvelope::new_rcpt(&message.message, rcpt_idx);
+                let envelope = QueueEnvelope::new(&message.message, rcpt);
                 let gateway = server.get_gateway_or_default(
                     &server
                         .eval_if::<String, _>(&queue_config.gateway, &envelope, message.span_id)
@@ -260,7 +252,8 @@ impl QueuedMessage {
             );
 
             // Build envelope
-            let mut envelope = QueueEnvelope::new_rcpt(&message.message, rcpt_idxs[0]);
+            let mut envelope =
+                QueueEnvelope::new(&message.message, &message.message.recipients[rcpt_idxs[0]]);
 
             // Throttle recipient domain
             for throttle in &queue_config.outbound_limiters.rcpt {
@@ -1393,7 +1386,7 @@ impl MessageWrapper {
         self.message.recipients[rcpt_idx].status = status;
 
         if needs_retry {
-            let envelope = QueueEnvelope::new_rcpt(&self.message, rcpt_idx);
+            let envelope = QueueEnvelope::new(&self.message, &self.message.recipients[rcpt_idx]);
             let queue = server.get_queue_or_default(
                 &server
                     .eval_if::<String, _>(&server.core.smtp.queue.queue, &envelope, self.span_id)

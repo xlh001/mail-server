@@ -197,6 +197,7 @@ impl QueueReceiver {
                     messages.push(MessageWrapper {
                         queue_id: key.deserialize_be_u64(0)?,
                         queue_name: Default::default(),
+                        is_multi_queue: false,
                         span_id: 0,
                         message: <Archive<AlignedBytes> as Deserialize>::deserialize(value)?
                             .deserialize::<Message>()?,

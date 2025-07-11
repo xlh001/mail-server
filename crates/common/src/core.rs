@@ -217,7 +217,7 @@ impl Server {
             })
     }
 
-    pub fn get_virtual_queue_or_default(&self, name: &QueueName, session_id: u64) -> &VirtualQueue {
+    pub fn get_virtual_queue_or_default(&self, name: &QueueName) -> &VirtualQueue {
         static DEFAULT_QUEUE: VirtualQueue = VirtualQueue { threads: 25 };
         self.core
             .smtp
@@ -230,7 +230,6 @@ impl Server {
                         Smtp(trc::SmtpEvent::IdNotFound),
                         Id = name.to_string(),
                         Details = "Virtual queue not found",
-                        SpanId = session_id,
                     );
                 }
 

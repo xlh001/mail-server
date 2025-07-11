@@ -4,13 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use std::time::{Duration, Instant};
-
-use ahash::AHashMap;
-use deadpool_postgres::Object;
-use rand::Rng;
-use tokio_postgres::{IsolationLevel, error::SqlState};
-
+use super::{PostgresStore, into_error};
 use crate::{
     IndexKey, Key, LogKey, SUBSPACE_COUNTER, SUBSPACE_IN_MEMORY_COUNTER, SUBSPACE_QUOTA, U64_LEN,
     write::{
@@ -18,8 +12,11 @@ use crate::{
         ValueClass, ValueOp,
     },
 };
-
-use super::{PostgresStore, into_error};
+use ahash::AHashMap;
+use deadpool_postgres::Object;
+use rand::Rng;
+use std::time::{Duration, Instant};
+use tokio_postgres::{IsolationLevel, error::SqlState};
 
 #[derive(Debug)]
 enum CommitError {
@@ -211,6 +208,47 @@ impl PostgresStore {
                                     .await
                                     .and_then(|row| row.try_get::<_, i64>(0))?,
                             );
+                        }
+                        ValueOp::Merge(merge) => {
+                            let s = trx
+                                .prepare_cached(&format!(
+                                    "SELECT v FROM {} WHERE k = $1 FOR UPDATE",
+                                    table
+                                ))
+                                .await?;
+                            let (exists, value) = trx
+                                .query_opt(&s, &[&key])
+                                .await?
+                                .map(|row| {
+                                    row.try_get::<_, &[u8]>(0)
+                                        .map_err(CommitError::from)
+                                        .and_then(|v| {
+                                            (merge.fnc)(Some(v))
+                                                .map(|v| (true, v))
+                                                .map_err(CommitError::from)
+                                        })
+                                })
+                                .unwrap_or_else(|| {
+                                    (merge.fnc)(None)
+                                        .map(|v| (false, v))
+                                        .map_err(CommitError::from)
+                                })?;
+
+                            let s = if exists {
+                                trx.prepare_cached(&format!(
+                                    "UPDATE {} SET v = $2 WHERE k = $1",
+                                    table
+                                ))
+                                .await?
+                            } else {
+                                trx.prepare_cached(&format!(
+                                    "INSERT INTO {} (k, v) VALUES ($1, $2)",
+                                    table
+                                ))
+                                .await?
+                            };
+
+                            trx.execute(&s, &[&key, &value]).await?;
                         }
                         ValueOp::Clear => {
                             let s = trx

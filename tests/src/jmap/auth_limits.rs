@@ -55,7 +55,7 @@ pub async fn test(params: &mut JMAPTest) {
     assert!(matches!(
         Client::new()
             .credentials(Credentials::basic("jdoe@example.com", "abcde"))
-            .accept_invalid_certs(true)
+            .accept_invalid_certs(true) .follow_redirects(["127.0.0.1"])
             .connect("https://127.0.0.1:8899")
             .await,
         Err(jmap_client::Error::Problem(err)) if err.status() == Some(401)));
@@ -85,6 +85,7 @@ pub async fn test(params: &mut JMAPTest) {
                 &format!("brute_force{}", n),
             ))
             .accept_invalid_certs(true)
+            .follow_redirects(["127.0.0.1"])
             .connect("https://127.0.0.1:8899")
             .await
         {
@@ -145,6 +146,7 @@ pub async fn test(params: &mut JMAPTest) {
         Client::new()
             .credentials(Credentials::basic("jdoe@example.com", "12345"))
             .accept_invalid_certs(true)
+            .follow_redirects(["127.0.0.1"])
             .connect("https://127.0.0.1:8899")
             .await
             .unwrap();
@@ -154,6 +156,7 @@ pub async fn test(params: &mut JMAPTest) {
     let client = Client::new()
         .credentials(Credentials::basic("jdoe@example.com", "12345"))
         .accept_invalid_certs(true)
+        .follow_redirects(["127.0.0.1"])
         .connect("https://127.0.0.1:8899")
         .await
         .unwrap();

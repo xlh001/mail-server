@@ -4,7 +4,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use crate::smtp::{TestSMTP, queue::build_rcpt};
+use crate::smtp::{
+    TestSMTP,
+    queue::{QueuedEvents, build_rcpt},
+};
 use common::config::smtp::queue::QueueName;
 use smtp::queue::{
     Error, ErrorDetails, Message, MessageWrapper, Recipient, Status, spool::SmtpSpool,
@@ -46,12 +49,14 @@ async fn queue_due() {
 
     for domain in vec!["a", "b", "c"].into_iter() {
         let now = now();
-        for queue_event in core.next_event().await {
-            if queue_event.due > now {
-                let wake_up = queue_event.due - now;
-                assert_eq!(wake_up, 1);
-                std::thread::sleep(Duration::from_secs(wake_up));
-            }
+        let queued = core.all_queued_messages().await;
+        if queued.messages.is_empty() {
+            let wake_up = queued.next_refresh - now;
+            assert_eq!(wake_up, 1);
+            std::thread::sleep(Duration::from_secs(wake_up));
+        }
+
+        for queue_event in core.all_queued_messages().await.messages {
             if let Some(message) = core
                 .read_message(queue_event.queue_id, QueueName::default())
                 .await
@@ -86,36 +91,34 @@ fn delivery_events() {
             message.rcpt("a").retry.due
         );
         assert_eq!(
-            message
-                .next_event_after(
-                    None,
-                    message.rcpt("a").expiration_time(message.created).unwrap()
-                )
-                .unwrap(),
+            next_event_after(
+                &message,
+                None,
+                message.rcpt("a").expiration_time(message.created).unwrap()
+            )
+            .unwrap(),
             message.rcpt("b").retry.due
         );
         assert_eq!(
-            message
-                .next_event_after(
-                    None,
-                    message.rcpt("b").expiration_time(message.created).unwrap()
-                )
-                .unwrap(),
+            next_event_after(
+                &message,
+                None,
+                message.rcpt("b").expiration_time(message.created).unwrap()
+            )
+            .unwrap(),
             message.rcpt("c").retry.due
         );
         assert_eq!(
-            message
-                .next_event_after(None, message.rcpt("c").notify.due)
-                .unwrap(),
+            next_event_after(&message, None, message.rcpt("c").notify.due).unwrap(),
             message.rcpt("c").expiration_time(message.created).unwrap()
         );
         assert!(
-            message
-                .next_event_after(
-                    None,
-                    message.rcpt("c").expiration_time(message.created).unwrap()
-                )
-                .is_none()
+            next_event_after(
+                &message,
+                None,
+                message.rcpt("c").expiration_time(message.created).unwrap()
+            )
+            .is_none()
         );
 
         if t == 0 {
@@ -163,6 +166,7 @@ pub fn new_message(queue_id: u64) -> MessageWrapper {
         queue_id,
         span_id: 0,
         queue_name: QueueName::default(),
+        is_multi_queue: false,
         message: Message {
             size: 0,
             created: now(),
@@ -179,6 +183,34 @@ pub fn new_message(queue_id: u64) -> MessageWrapper {
             received_via_port: 0,
         },
     }
+}
+
+fn next_event_after(message: &Message, queue: Option<QueueName>, instant: u64) -> Option<u64> {
+    let mut next_event = None;
+
+    for rcpt in &message.recipients {
+        if matches!(rcpt.status, Status::Scheduled | Status::TemporaryFailure(_))
+            && queue.is_none_or(|q| rcpt.queue == q)
+        {
+            if rcpt.retry.due > instant
+                && next_event.as_ref().is_none_or(|ne| rcpt.retry.due.lt(ne))
+            {
+                next_event = rcpt.retry.due.into();
+            }
+            if rcpt.notify.due > instant
+                && next_event.as_ref().is_none_or(|ne| rcpt.notify.due.lt(ne))
+            {
+                next_event = rcpt.notify.due.into();
+            }
+            if let Some(expires) = rcpt.expiration_time(message.created) {
+                if expires > instant && next_event.as_ref().is_none_or(|ne| expires.lt(ne)) {
+                    next_event = expires.into();
+                }
+            }
+        }
+    }
+
+    next_event
 }
 
 pub trait TestMessage {

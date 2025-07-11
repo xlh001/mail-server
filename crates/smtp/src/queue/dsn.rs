@@ -261,7 +261,7 @@ impl MessageWrapper {
                     Status::TemporaryFailure(_) | Status::Scheduled
                 ) && rcpt.notify.due <= now
                 {
-                    let envelope = QueueEnvelope::new_rcpt(&self.message, rcpt_idx);
+                    let envelope = QueueEnvelope::new(&self.message, rcpt);
 
                     let queue_id = server
                         .eval_if::<String, _>(

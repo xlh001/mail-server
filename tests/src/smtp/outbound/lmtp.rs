@@ -9,13 +9,14 @@ use std::time::{Duration, Instant};
 use crate::smtp::{
     DnsCache, TestSMTP,
     inbound::TestMessage,
+    queue::QueuedEvents,
     session::{TestSession, VerifyResponse},
 };
 use common::{
     config::{server::ServerProtocol, smtp::queue::QueueName},
     ipc::QueueEvent,
 };
-use smtp::queue::spool::SmtpSpool;
+use smtp::queue::spool::{QUEUE_REFRESH, SmtpSpool};
 use store::write::now;
 
 const REMOTE: &str = "
@@ -120,20 +121,21 @@ async fn lmtp_delivery() {
     loop {
         match local.queue_receiver.try_read_event().await {
             Some(QueueEvent::Refresh | QueueEvent::WorkerDone { .. }) => {}
-            Some(QueueEvent::Paused(_)) => unreachable!(),
+            Some(QueueEvent::Paused(_)) | Some(QueueEvent::ReloadSettings) => unreachable!(),
             None | Some(QueueEvent::Stop) => break,
         }
 
-        let events = core.next_event().await;
-        if events.is_empty() {
-            break;
-        }
-        let now = now();
-        for event in events {
-            if event.due > now {
-                tokio::time::sleep(Duration::from_secs(event.due - now)).await;
+        let mut events = core.all_queued_messages().await;
+        if events.messages.is_empty() {
+            let now = now();
+            if events.next_refresh < now + QUEUE_REFRESH {
+                tokio::time::sleep(Duration::from_secs(events.next_refresh - now)).await;
+                events = core.all_queued_messages().await;
+            } else {
+                break;
             }
-
+        }
+        for event in events.messages {
             let message = core
                 .read_message(event.queue_id, QueueName::default())
                 .await

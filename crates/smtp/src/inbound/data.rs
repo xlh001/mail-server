@@ -9,8 +9,7 @@ use crate::{
     core::{Session, SessionAddress, State},
     inbound::milter::Modification,
     queue::{
-        self, DMARC_AUTHENTICATED, Message, MessageSource, MessageWrapper, QueueEnvelope, Schedule,
-        quota::HasQueueQuota,
+        self, Message, MessageSource, MessageWrapper, QueueEnvelope, Schedule, quota::HasQueueQuota,
     },
     reporting::analysis::AnalyzeReport,
     scripts::ScriptResult,
@@ -668,15 +667,12 @@ impl<T: SessionStream> Session<T> {
 
             // Queue message
             let source = if !self.is_authenticated() {
-                MessageSource::Unauthenticated
+                MessageSource::Unauthenticated(
+                    dmarc_result.is_some_and(|result| result == DmarcResult::Pass),
+                )
             } else {
                 MessageSource::Authenticated
             };
-            if self.is_authenticated()
-                || dmarc_result.is_some_and(|result| result == DmarcResult::Pass)
-            {
-                message.message.flags |= DMARC_AUTHENTICATED;
-            }
             if message
                 .queue(
                     Some(&headers),
@@ -731,7 +727,6 @@ impl<T: SessionStream> Session<T> {
         let future_release = self.data.future_release;
         rcpt_to.sort_unstable();
         for rcpt in rcpt_to {
-            let rcpt_idx = message.recipients.len();
             message.recipients.push(queue::Recipient {
                 address: rcpt.address,
                 address_lcase: rcpt.address_lcase,
@@ -754,7 +749,7 @@ impl<T: SessionStream> Session<T> {
                 queue: QueueName::default(),
             });
 
-            let envelope = QueueEnvelope::new_rcpt(&message, rcpt_idx);
+            let envelope = QueueEnvelope::new(&message, message.recipients.last().unwrap());
 
             // Set next retry time
             let retry = if self.data.future_release == 0 {
@@ -836,6 +831,7 @@ impl<T: SessionStream> Session<T> {
         MessageWrapper {
             queue_id,
             queue_name: QueueName::default(),
+            is_multi_queue: false,
             span_id,
             message,
         }

@@ -135,6 +135,29 @@ impl SqliteStore {
                                     .caused_by(trc::location!())?,
                                 );
                             }
+                            ValueOp::Merge(merge) => {
+                                let value = trx
+                                    .prepare_cached(&format!("SELECT v FROM {} WHERE k = ?", table))
+                                    .map_err(into_error)
+                                    .caused_by(trc::location!())?
+                                    .query_row([&key], |row| {
+                                        Ok((merge.fnc)(Some(row.get_ref(0)?.as_bytes()?)))
+                                    })
+                                    .optional()
+                                    .map_err(into_error)
+                                    .caused_by(trc::location!())?
+                                    .unwrap_or_else(|| (merge.fnc)(None))?;
+
+                                trx.prepare_cached(&format!(
+                                    "INSERT OR REPLACE INTO {} (k, v) VALUES (?, ?)",
+                                    table
+                                ))
+                                .map_err(into_error)
+                                .caused_by(trc::location!())?
+                                .execute([&key, &value])
+                                .map_err(into_error)
+                                .caused_by(trc::location!())?;
+                            }
                             ValueOp::Clear => {
                                 trx.prepare_cached(&format!("DELETE FROM {} WHERE k = ?", table))
                                     .map_err(into_error)

@@ -296,8 +296,15 @@ pub enum ValueOp {
     },
     AtomicAdd(i64),
     AddAndGet(i64),
+    Merge(MergeFn),
     #[default]
     Clear,
+}
+
+#[allow(clippy::type_complexity)]
+pub struct MergeFn {
+    pub fnc: Box<dyn Fn(Option<&[u8]>) -> trc::Result<Vec<u8>> + Send + Sync>,
+    pub fnc_id: u64,
 }
 
 #[derive(Debug, PartialEq, Clone, Eq, Hash)]
@@ -505,5 +512,27 @@ impl ArchiveVersion {
             ArchiveVersion::Versioned { change_id, .. } => Some(*change_id),
             _ => None,
         }
+    }
+}
+
+impl std::fmt::Debug for MergeFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MergeFn")
+            .field("fnc_id", &self.fnc_id)
+            .finish()
+    }
+}
+
+impl PartialEq for MergeFn {
+    fn eq(&self, other: &Self) -> bool {
+        self.fnc_id == other.fnc_id
+    }
+}
+
+impl Eq for MergeFn {}
+
+impl std::hash::Hash for MergeFn {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.fnc_id.hash(state);
     }
 }

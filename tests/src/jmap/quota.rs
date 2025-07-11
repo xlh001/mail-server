@@ -10,6 +10,7 @@ use crate::{
         assert_is_empty, delivery::SmtpConnection, emails_purge_tombstoned, jmap_raw_request,
         mailbox::destroy_all_mailboxes, test_account_login,
     },
+    smtp::queue::QueuedEvents,
 };
 use common::config::smtp::queue::QueueName;
 use email::mailbox::INBOX_ID;
@@ -359,7 +360,7 @@ pub async fn test(params: &mut JMAPTest) {
         params.client.set_default_account_id(account_id.to_string());
         destroy_all_mailboxes(params).await;
     }
-    for event in server.next_event().await {
+    for event in server.all_queued_messages().await.messages {
         server
             .read_message(event.queue_id, QueueName::default())
             .await

@@ -27,6 +27,7 @@ use std::{
     cmp::Ordering,
     time::{Duration, Instant},
 };
+use trc::AddContext;
 
 impl FdbStore {
     pub(crate) async fn write(&self, batch: Batch<'_>) -> trc::Result<AssignedIds> {
@@ -132,6 +133,21 @@ impl FdbStore {
                                 };
                                 trx.set(&key, &num.to_le_bytes()[..]);
                                 result.push_counter_id(num);
+                            }
+                            ValueOp::Merge(merge) => {
+                                let value = match read_chunked_value(&key, &trx, false)
+                                    .await
+                                    .caused_by(trc::location!())?
+                                {
+                                    ChunkedValue::Single(slice) => {
+                                        (merge.fnc)(Some(slice.as_ref()))
+                                    }
+                                    ChunkedValue::Chunked { bytes, .. } => {
+                                        (merge.fnc)(Some(bytes.as_ref()))
+                                    }
+                                    ChunkedValue::None => (merge.fnc)(None),
+                                }?;
+                                trx.set(&key, value.as_ref());
                             }
                             ValueOp::Clear => {
                                 if do_chunk {

@@ -72,7 +72,17 @@ pub static USER_AGENT: &str = "Stalwart/1.0.0";
 pub static DAEMON_NAME: &str = concat!("Stalwart v", env!("CARGO_PKG_VERSION"),);
 pub static PROD_ID: &str = "-//Stalwart Labs LLC//Stalwart Server//EN";
 
-pub const DATABASE_SCHEMA_VERSION: u32 = 2;
+/*
+
+Schema history:
+
+1 - v0.12.0
+2 - v0.12.4
+3 - v0.13.0
+
+*/
+
+pub const DATABASE_SCHEMA_VERSION: u32 = 3;
 
 pub const LONG_1D_SLUMBER: Duration = Duration::from_secs(60 * 60 * 24);
 pub const LONG_1Y_SLUMBER: Duration = Duration::from_secs(60 * 60 * 24 * 365);

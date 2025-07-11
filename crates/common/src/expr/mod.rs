@@ -38,6 +38,12 @@ pub const V_HEADERS: u32 = 23;
 pub const V_METHOD: u32 = 24;
 pub const V_ASN: u32 = 25;
 pub const V_COUNTRY: u32 = 26;
+pub const V_RECEIVED_VIA_PORT: u32 = 27;
+pub const V_RECEIVED_FROM_IP: u32 = 28;
+pub const V_QUEUE_NAME: u32 = 29;
+pub const V_SOURCE: u32 = 30;
+pub const V_SIZE: u32 = 31;
+pub const V_QUEUE_AGE: u32 = 32;
 
 pub const VARIABLES_MAP: &[(&str, u32)] = &[
     ("rcpt", V_RECIPIENT),
@@ -67,6 +73,12 @@ pub const VARIABLES_MAP: &[(&str, u32)] = &[
     ("method", V_METHOD),
     ("asn", V_ASN),
     ("country", V_COUNTRY),
+    ("received_via_port", V_RECEIVED_VIA_PORT),
+    ("received_from_ip", V_RECEIVED_FROM_IP),
+    ("queue_name", V_QUEUE_NAME),
+    ("source", V_SOURCE),
+    ("size", V_SIZE),
+    ("queue_age", V_QUEUE_AGE),
 ];
 
 use compact_str::CompactString;

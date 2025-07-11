@@ -4,12 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use std::time::{Duration, Instant};
-
-use ahash::AHashMap;
-use mysql_async::{Conn, Error, IsolationLevel, TxOpts, params, prelude::Queryable};
-use rand::Rng;
-
+use super::{MysqlStore, into_error};
 use crate::{
     IndexKey, Key, LogKey, SUBSPACE_COUNTER, SUBSPACE_IN_MEMORY_COUNTER, SUBSPACE_QUOTA, U64_LEN,
     write::{
@@ -17,8 +12,10 @@ use crate::{
         ValueClass, ValueOp,
     },
 };
-
-use super::{MysqlStore, into_error};
+use ahash::AHashMap;
+use mysql_async::{Conn, Error, IsolationLevel, TxOpts, params, prelude::Queryable};
+use rand::Rng;
+use std::time::{Duration, Instant};
 
 #[derive(Debug)]
 enum CommitError {
@@ -220,6 +217,39 @@ impl MysqlStore {
                                     ))
                                 })?,
                             );
+                        }
+                        ValueOp::Merge(merge) => {
+                            let s = trx
+                                .prep(format!("SELECT v FROM {} WHERE k = ? FOR UPDATE", table))
+                                .await?;
+                            let (exists, value) = trx
+                                .exec_first::<Vec<u8>, _, _>(&s, (&key,))
+                                .await?
+                                .map(|bytes| {
+                                    (merge.fnc)(Some(bytes.as_ref()))
+                                        .map(|v| (true, v))
+                                        .map_err(CommitError::from)
+                                })
+                                .unwrap_or_else(|| {
+                                    (merge.fnc)(None)
+                                        .map(|v| (false, v))
+                                        .map_err(CommitError::from)
+                                })?;
+
+                            let s = if exists {
+                                trx.prep(format!("UPDATE {} SET v = :v WHERE k = :k", table))
+                                    .await?
+                            } else {
+                                trx.prep(format!("INSERT INTO {} (k, v) VALUES (:k, :v)", table))
+                                    .await?
+                            };
+
+                            if let Err(err) =
+                                trx.exec_drop(&s, params! {"k" => key, "v" => &value}).await
+                            {
+                                trx.rollback().await?;
+                                return Err(err.into());
+                            }
                         }
                         ValueOp::Clear => {
                             // Update asserted value
