@@ -15,7 +15,7 @@ const LOCAL: &str = r#"
 [session.rcpt]
 relay = true
 
-[queue.gateway.mx]
+[queue.route.mx]
 ip-lookup = "ipv6_then_ipv4"
 "#;
 

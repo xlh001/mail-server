@@ -24,10 +24,12 @@ use tokio::sync::mpsc;
 
 pub struct Queue {
     pub core: Arc<Inner>,
-    pub locked_messages: LockedMessages,
+    pub locked: AHashMap<(QueueId, QueueName), LockedMessage>,
+    pub locked_revision: u64,
     pub stats: AHashMap<QueueName, QueueStats>,
-    pub next_wake_up: Instant,
+    pub next_refresh: Instant,
     pub rx: mpsc::Receiver<QueueEvent>,
+    pub is_paused: bool,
 }
 
 #[derive(Debug)]
@@ -35,12 +37,6 @@ pub struct QueueStats {
     pub in_flight: usize,
     pub max_in_flight: usize,
     pub last_warning: Instant,
-}
-
-#[derive(Debug)]
-pub struct LockedMessages {
-    pub locked: AHashMap<(QueueId, QueueName), LockedMessage>,
-    pub revision: u64,
 }
 
 #[derive(Debug)]
@@ -63,88 +59,43 @@ impl Queue {
     pub fn new(core: Arc<Inner>, rx: mpsc::Receiver<QueueEvent>) -> Self {
         Queue {
             core,
-            locked_messages: LockedMessages::default(),
+            locked: AHashMap::with_capacity(128),
+            locked_revision: 0,
             stats: AHashMap::new(),
-            next_wake_up: Instant::now(),
+            next_refresh: Instant::now(),
+            is_paused: false,
             rx,
         }
     }
 
     pub async fn start(&mut self) {
-        let mut is_paused = false;
-
         loop {
-            let refresh_queue = match tokio::time::timeout(
-                self.next_wake_up.duration_since(Instant::now()),
+            let mut refresh_queue;
+
+            match tokio::time::timeout(
+                self.next_refresh.duration_since(Instant::now()),
                 self.rx.recv(),
             )
             .await
             {
-                Ok(Some(QueueEvent::WorkerDone {
-                    queue_id,
-                    queue_name,
-                    status,
-                })) => {
-                    let queue_stats = self.stats.get_mut(&queue_name).unwrap();
-                    queue_stats.in_flight -= 1;
+                Ok(Some(event)) => {
+                    refresh_queue = self.handle_event(event).await;
 
-                    match status {
-                        QueueEventStatus::Completed => {
-                            self.locked_messages.locked.remove(&(queue_id, queue_name));
-                            !self.locked_messages.locked.is_empty() || !queue_stats.has_capacity()
-                        }
-                        QueueEventStatus::Locked => {
-                            let expires = LOCK_EXPIRY + rand::rng().random_range(5..10);
-                            let due_in = Instant::now() + Duration::from_secs(expires);
-                            if due_in < self.next_wake_up {
-                                self.next_wake_up = due_in;
-                            }
-
-                            self.locked_messages.locked.insert(
-                                (queue_id, queue_name),
-                                LockedMessage {
-                                    expires: now() + expires,
-                                    revision: self.locked_messages.revision,
-                                },
-                            );
-                            self.locked_messages.locked.len() > 1 || !queue_stats.has_capacity()
-                        }
-                        QueueEventStatus::Deferred => {
-                            self.locked_messages.locked.remove(&(queue_id, queue_name));
-                            true
-                        }
+                    while let Ok(event) = self.rx.try_recv() {
+                        refresh_queue = self.handle_event(event).await || refresh_queue;
                     }
                 }
-                Ok(Some(QueueEvent::Refresh)) => true,
-                Ok(Some(QueueEvent::Paused(paused))) => {
-                    self.core
-                        .data
-                        .queue_status
-                        .store(!paused, Ordering::Relaxed);
-                    is_paused = paused;
-                    false
+                Err(_) => {
+                    refresh_queue = true;
                 }
-                Ok(Some(QueueEvent::ReloadSettings)) => {
-                    let server = self.core.build_server();
-                    for (name, settings) in &server.core.smtp.queue.virtual_queues {
-                        if let Some(stats) = self.stats.get_mut(name) {
-                            stats.max_in_flight = settings.threads;
-                        } else {
-                            self.stats.insert(*name, QueueStats::new(settings.threads));
-                        }
-                    }
-
-                    false
-                }
-                Err(_) => true,
-                Ok(Some(QueueEvent::Stop)) | Ok(None) => {
+                Ok(None) => {
                     break;
                 }
             };
 
-            if !is_paused {
+            if !self.is_paused {
                 // Deliver scheduled messages
-                if refresh_queue || self.next_wake_up <= Instant::now() {
+                if refresh_queue || self.next_refresh <= Instant::now() {
                     // Process queue events
                     let server = self.core.build_server();
                     let mut queue_events = server.next_event(self).await;
@@ -183,24 +134,89 @@ impl Queue {
                                     Limit = stats.max_in_flight,
                                 );
                             }
-                            self.locked_messages
-                                .locked
+                            self.locked
                                 .remove(&(queue_event.queue_id, queue_event.queue_name));
                         }
                     }
 
                     // Remove expired locks
                     let now = now();
-                    self.locked_messages.locked.retain(|_, locked| {
-                        locked.expires > now && locked.revision == self.locked_messages.revision
+                    self.locked.retain(|_, locked| {
+                        locked.expires > now && locked.revision == self.locked_revision
                     });
 
-                    self.next_wake_up = Instant::now()
+                    self.next_refresh = Instant::now()
                         + Duration::from_secs(queue_events.next_refresh.saturating_sub(now));
                 }
             } else {
                 // Queue is paused
-                self.next_wake_up = Instant::now() + Duration::from_secs(86400);
+                self.next_refresh = Instant::now() + Duration::from_secs(86400);
+            }
+        }
+    }
+
+    async fn handle_event(&mut self, event: QueueEvent) -> bool {
+        match event {
+            QueueEvent::WorkerDone {
+                queue_id,
+                queue_name,
+                status,
+            } => {
+                let queue_stats = self.stats.get_mut(&queue_name).unwrap();
+                queue_stats.in_flight -= 1;
+
+                match status {
+                    QueueEventStatus::Completed => {
+                        self.locked.remove(&(queue_id, queue_name));
+                        !self.locked.is_empty() || !queue_stats.has_capacity()
+                    }
+                    QueueEventStatus::Locked => {
+                        let expires = LOCK_EXPIRY + rand::rng().random_range(5..10);
+                        let due_in = Instant::now() + Duration::from_secs(expires);
+                        if due_in < self.next_refresh {
+                            self.next_refresh = due_in;
+                        }
+
+                        self.locked.insert(
+                            (queue_id, queue_name),
+                            LockedMessage {
+                                expires: now() + expires,
+                                revision: self.locked_revision,
+                            },
+                        );
+                        self.locked.len() > 1 || !queue_stats.has_capacity()
+                    }
+                    QueueEventStatus::Deferred => {
+                        self.locked.remove(&(queue_id, queue_name));
+                        true
+                    }
+                }
+            }
+            QueueEvent::Refresh => true,
+            QueueEvent::Paused(paused) => {
+                self.core
+                    .data
+                    .queue_status
+                    .store(!paused, Ordering::Relaxed);
+                self.is_paused = paused;
+                false
+            }
+            QueueEvent::ReloadSettings => {
+                let server = self.core.build_server();
+                for (name, settings) in &server.core.smtp.queue.virtual_queues {
+                    if let Some(stats) = self.stats.get_mut(name) {
+                        stats.max_in_flight = settings.threads;
+                    } else {
+                        self.stats.insert(*name, QueueStats::new(settings.threads));
+                    }
+                }
+
+                false
+            }
+            QueueEvent::Stop => {
+                self.rx.close();
+                self.is_paused = true;
+                false
             }
         }
     }
@@ -324,15 +340,15 @@ impl Message {
 impl Recipient {
     pub fn expiration_time(&self, created: u64) -> Option<u64> {
         match self.expires {
-            QueueExpiry::Duration(time) => Some(created + time),
-            QueueExpiry::Count(_) => None,
+            QueueExpiry::Ttl(time) => Some(created + time),
+            QueueExpiry::Attempts(_) => None,
         }
     }
 
     pub fn is_expired(&self, created: u64, now: u64) -> bool {
         match self.expires {
-            QueueExpiry::Duration(time) => created + time <= now,
-            QueueExpiry::Count(count) => self.retry.inner >= count,
+            QueueExpiry::Ttl(time) => created + time <= now,
+            QueueExpiry::Attempts(count) => self.retry.inner >= count,
         }
     }
 }
@@ -353,14 +369,5 @@ impl QueueStats {
     #[inline]
     pub fn has_capacity(&self) -> bool {
         self.in_flight < self.max_in_flight
-    }
-}
-
-impl Default for LockedMessages {
-    fn default() -> Self {
-        LockedMessages {
-            locked: AHashMap::with_capacity(128),
-            revision: 0,
-        }
     }
 }

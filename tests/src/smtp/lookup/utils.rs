@@ -36,40 +36,34 @@ const CONFIG: &str = r#"
 [queue.connection.test.timeout]
 connect = "10s"
 
-[[queue.connection.test.source-ip]]
-address = "10.0.0.1"
-ehlo-hostname = "test1.example.com"
-
-[[queue.connection.test.source-ip]]
-address = "10.0.0.2"
-ehlo-hostname = "test2.example.com"
-
-[[queue.connection.test.source-ip]]
-address = "10.0.0.3"
-ehlo-hostname = "test3.example.com"
-
-[[queue.connection.test.source-ip]]
-address = "10.0.0.4"
-ehlo-hostname = "test4.example.com"
-
-[[queue.connection.test.source-ip]]
-address = "a:b::1"
-ehlo-hostname = "test5.example.com"
-
-[[queue.connection.test.source-ip]]
-address = "a:b::2"
-ehlo-hostname = "test6.example.com"
-
-[[queue.connection.test.source-ip]]
-address = "a:b::3"
-ehlo-hostname = "test7.example.com"
-
-[[queue.connection.test.source-ip]]
-address = "a:b::4"
-ehlo-hostname = "test8.example.com"
-
 [queue.connection.test]
 ehlo-hostname = "test.example.com"
+source-ips = ["10.0.0.1", "10.0.0.2", "10.0.0.3", "10.0.0.4", 
+              "a:b::1", "a:b::2", "a:b::3", "a:b::4"]
+
+[queue.source-ip."10.0.0.1"]
+ehlo-hostname = "test1.example.com"
+
+[queue.source-ip."10.0.0.2"]
+ehlo-hostname = "test2.example.com"
+
+[queue.source-ip."10.0.0.3"]
+ehlo-hostname = "test3.example.com"
+
+[queue.source-ip."10.0.0.4"]
+ehlo-hostname = "test4.example.com"
+
+[queue.source-ip."a:b::1"]
+ehlo-hostname = "test5.example.com"
+
+[queue.source-ip."a:b::2"]
+ehlo-hostname = "test6.example.com"
+
+[queue.source-ip."a:b::3"]
+ehlo-hostname = "test7.example.com"
+
+[queue.source-ip."a:b::4"]
+ehlo-hostname = "test8.example.com"
 
 [queue.test-v4.type]
 type = "mx"
@@ -160,7 +154,7 @@ async fn strategies() {
             address_lcase: "recipient@foobar.com".to_string(),
             retry: Schedule::now(),
             notify: Schedule::now(),
-            expires: QueueExpiry::Duration(3600),
+            expires: QueueExpiry::Ttl(3600),
             queue: QueueName::new("test").unwrap(),
             status: Status::TemporaryFailure(ErrorDetails {
                 entity: "test.example.com".to_string(),

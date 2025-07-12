@@ -84,7 +84,7 @@ async fn generate_dsn() {
                 orcpt: None,
                 retry: Schedule::now(),
                 notify: Schedule::now(),
-                expires: QueueExpiry::Duration(10),
+                expires: QueueExpiry::Ttl(10),
                 queue: QueueName::default(),
             }],
             flags: 0,
@@ -138,7 +138,7 @@ async fn generate_dsn() {
         orcpt: None,
         retry: Schedule::now(),
         notify: Schedule::now(),
-        expires: QueueExpiry::Duration(10),
+        expires: QueueExpiry::Ttl(10),
         queue: QueueName::default(),
     });
     core.send_dsn(&mut message).await;
@@ -157,7 +157,7 @@ async fn generate_dsn() {
         orcpt: Some("jdoe@example.org".into()),
         retry: Schedule::now(),
         notify: Schedule::now(),
-        expires: QueueExpiry::Duration(10),
+        expires: QueueExpiry::Ttl(10),
         queue: QueueName::default(),
     });
     core.send_dsn(&mut message).await;

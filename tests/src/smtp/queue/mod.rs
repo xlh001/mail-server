@@ -27,7 +27,7 @@ pub fn build_rcpt(address: &str, retry: u64, notify: u64, expires: u64) -> Recip
         address_lcase: address.to_string(),
         retry: Schedule::later(retry),
         notify: Schedule::later(notify),
-        expires: QueueExpiry::Duration(expires),
+        expires: QueueExpiry::Ttl(expires),
         status: Status::Scheduled,
         flags: 0,
         orcpt: None,

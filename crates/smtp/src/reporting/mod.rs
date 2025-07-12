@@ -4,29 +4,25 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use std::{future::Future, io, time::SystemTime};
-
+use crate::{
+    core::Session,
+    inbound::DkimSign,
+    queue::{DomainPart, MessageSource, MessageWrapper, spool::SmtpSpool},
+};
 use common::{
     Server, USER_AGENT,
     config::smtp::report::{AddressMatch, AggregateFrequency},
     expr::if_block::IfBlock,
     ipc::ReportingEvent,
 };
-
 use mail_auth::{
     common::headers::HeaderWriter,
     report::{AuthFailureType, DeliveryResult, Feedback, FeedbackType},
 };
 use mail_parser::DateTime;
-
+use std::{future::Future, io, time::SystemTime};
 use store::write::{ReportEvent, key::KeySerializer};
 use tokio::io::{AsyncRead, AsyncWrite};
-
-use crate::{
-    core::Session,
-    inbound::DkimSign,
-    queue::{DomainPart, FROM_REPORT, MessageSource, MessageWrapper, spool::SmtpSpool},
-};
 
 pub mod analysis;
 pub mod dkim;
@@ -137,19 +133,21 @@ impl SmtpReporting for Server {
         if !deliver_now {
             #[cfg(not(feature = "test_mode"))]
             {
+                use common::config::smtp::queue::QueueExpiry;
                 use rand::Rng;
 
                 let delivery_time = rand::rng().random_range(0u64..10800u64);
-                for domain in &mut message.domains {
-                    domain.retry.due += delivery_time;
-                    domain.expires += delivery_time;
-                    domain.notify.due += delivery_time;
+                for rcpt in &mut message.message.recipients {
+                    rcpt.retry.due += delivery_time;
+                    rcpt.notify.due += delivery_time;
+                    if let QueueExpiry::Ttl(expires) = &mut rcpt.expires {
+                        *expires += delivery_time;
+                    }
                 }
             }
         }
 
         // Queue message
-        message.message.flags |= FROM_REPORT;
         message
             .queue(
                 signature.as_deref(),

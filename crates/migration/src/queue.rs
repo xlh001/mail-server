@@ -278,7 +278,7 @@ where
                         retry: domain.retry.clone(),
                         notify: domain.notify.clone(),
                         queue: QueueName::default(),
-                        expires: QueueExpiry::Duration(domain.expires.saturating_sub(now())),
+                        expires: QueueExpiry::Ttl(domain.expires.saturating_sub(now())),
                     }
                 })
                 .collect(),

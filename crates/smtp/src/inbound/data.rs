@@ -745,7 +745,7 @@ impl<T: SessionStream> Session<T> {
                 orcpt: rcpt.dsn_info,
                 retry: Schedule::now(),
                 notify: Schedule::now(),
-                expires: QueueExpiry::Count(0),
+                expires: QueueExpiry::Attempts(0),
                 queue: QueueName::default(),
             });
 
@@ -779,18 +779,18 @@ impl<T: SessionStream> Session<T> {
                 (
                     queue::Schedule::later(future_release + next_notify),
                     match queue.expiry {
-                        QueueExpiry::Duration(time) => QueueExpiry::Duration(future_release + time),
-                        QueueExpiry::Count(count) => QueueExpiry::Count(count),
+                        QueueExpiry::Ttl(time) => QueueExpiry::Ttl(future_release + time),
+                        QueueExpiry::Attempts(count) => QueueExpiry::Attempts(count),
                     },
                 )
             } else if (message.flags & MAIL_BY_RETURN) != 0 {
                 (
                     queue::Schedule::later(future_release + next_notify),
-                    QueueExpiry::Duration(self.data.delivery_by as u64),
+                    QueueExpiry::Ttl(self.data.delivery_by as u64),
                 )
             } else {
                 let (notify, expires) = match queue.expiry {
-                    QueueExpiry::Duration(expire_secs) => (
+                    QueueExpiry::Ttl(expire_secs) => (
                         (if self.data.delivery_by.is_positive() {
                             let notify_at = self.data.delivery_by as u64;
                             if expire_secs > notify_at {
@@ -806,11 +806,11 @@ impl<T: SessionStream> Session<T> {
                                 next_notify
                             }
                         }),
-                        QueueExpiry::Duration(expire_secs),
+                        QueueExpiry::Ttl(expire_secs),
                     ),
-                    QueueExpiry::Count(_) => (
+                    QueueExpiry::Attempts(_) => (
                         next_notify,
-                        QueueExpiry::Duration(self.data.delivery_by.unsigned_abs()),
+                        QueueExpiry::Ttl(self.data.delivery_by.unsigned_abs()),
                     ),
                 };
 

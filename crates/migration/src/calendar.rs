@@ -133,7 +133,8 @@ pub(crate) async fn migrate_calendar_events(server: &Server) -> trc::Result<()> 
                     num_migrated += 1;
                 }
                 Err(err) => {
-                    if archive.unarchive_untrusted::<CalendarEvent>().is_err() {
+                    if let Err(err_) = archive.unarchive_untrusted::<CalendarEvent>() {
+                        trc::error!(err_.caused_by(trc::location!()));
                         return Err(err.caused_by(trc::location!()));
                     }
                 }

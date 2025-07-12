@@ -679,17 +679,17 @@ hash = 64
 type = "system"
 
 [queue.strategy]
-gateway = [ { if = "rcpt_domain == 'example.com'", then = "'local'" }, 
+route = [ { if = "rcpt_domain == 'example.com'", then = "'local'" }, 
              { if = "contains(['remote.org', 'foobar.com', 'test.com', 'other_domain.com'], rcpt_domain)", then = "'mock-smtp'" },
              { else = "'mx'" } ]
 
-[queue.gateway."mock-smtp"]
+[queue.route."mock-smtp"]
 type = "relay"
 address = "localhost"
 port = 9999
 protocol = "smtp"
 
-[queue.gateway."mock-smtp".tls]
+[queue.route."mock-smtp".tls]
 enable = false
 allow-invalid-certs = true
 

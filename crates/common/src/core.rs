@@ -10,8 +10,8 @@ use crate::{
     config::smtp::{
         auth::{ArcSealer, DkimSigner, LazySignature, ResolvedSignature, build_signature},
         queue::{
-            ConnectionStrategy, DEFAULT_QUEUE_NAME, GatewayStrategy, MxConfig, QueueExpiry,
-            QueueName, QueueStrategy, RequireOptional, TlsStrategy, VirtualQueue,
+            ConnectionStrategy, DEFAULT_QUEUE_NAME, MxConfig, QueueExpiry, QueueName,
+            QueueStrategy, RequireOptional, RoutingStrategy, TlsStrategy, VirtualQueue,
         },
     },
     ipc::{BroadcastEvent, StateEvent},
@@ -190,9 +190,9 @@ impl Server {
         })
     }
 
-    pub fn get_gateway_or_default(&self, name: &str, session_id: u64) -> &GatewayStrategy {
-        static LOCAL_GATEWAY: GatewayStrategy = GatewayStrategy::Local;
-        static MX_GATEWAY: GatewayStrategy = GatewayStrategy::Mx(MxConfig {
+    pub fn get_route_or_default(&self, name: &str, session_id: u64) -> &RoutingStrategy {
+        static LOCAL_GATEWAY: RoutingStrategy = RoutingStrategy::Local;
+        static MX_GATEWAY: RoutingStrategy = RoutingStrategy::Mx(MxConfig {
             max_mx: 5,
             max_multi_homed: 2,
             ip_lookup_strategy: IpLookupStrategy::Ipv4thenIpv6,
@@ -200,7 +200,7 @@ impl Server {
         self.core
             .smtp
             .queue
-            .gateway_strategy
+            .routing_strategy
             .get(name)
             .unwrap_or_else(|| match name {
                 "local" => &LOCAL_GATEWAY,
@@ -252,7 +252,7 @@ impl Server {
                 86400,  // 1 day
                 259200, // 3 days
             ],
-            expiry: QueueExpiry::Duration(432000), // 5 days
+            expiry: QueueExpiry::Ttl(432000), // 5 days
             virtual_queue: QueueName::default(),
         });
         self.core

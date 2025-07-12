@@ -291,7 +291,7 @@ directory = "'{STORE}'"
 type = "system"
 
 [queue.strategy]
-gateway = [ { if = "rcpt_domain == 'example.com'", then = "'local'" }, 
+route = [ { if = "rcpt_domain == 'example.com'", then = "'local'" }, 
              { else = "'mx'" } ]
 
 [store."foundationdb"]

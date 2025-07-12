@@ -25,7 +25,7 @@ use crate::reporting::SmtpReporting;
 use crate::{queue::ErrorDetails, reporting::tls::TlsRptOptions};
 use ahash::AHashMap;
 use common::Server;
-use common::config::smtp::queue::GatewayStrategy;
+use common::config::smtp::queue::RoutingStrategy;
 use common::config::{server::ServerProtocol, smtp::report::AggregateFrequency};
 use common::ipc::{PolicyType, QueueEvent, QueueEventStatus, TlsEvent};
 use compact_str::ToCompactString;
@@ -215,10 +215,10 @@ impl QueuedMessage {
             }
         }
 
-        // Group recipients by gateway
+        // Group recipients by route
         let queue_config = &server.core.smtp.queue;
         let now_ = now();
-        let mut gateways: AHashMap<(&str, &GatewayStrategy), Vec<usize>> = AHashMap::new();
+        let mut routes: AHashMap<(&str, &RoutingStrategy), Vec<usize>> = AHashMap::new();
         for (rcpt_idx, rcpt) in message.message.recipients.iter().enumerate() {
             if matches!(
                 &rcpt.status,
@@ -227,16 +227,16 @@ impl QueuedMessage {
                 && rcpt.queue == message.queue_name
             {
                 let envelope = QueueEnvelope::new(&message.message, rcpt);
-                let gateway = server.get_gateway_or_default(
+                let route = server.get_route_or_default(
                     &server
-                        .eval_if::<String, _>(&queue_config.gateway, &envelope, message.span_id)
+                        .eval_if::<String, _>(&queue_config.route, &envelope, message.span_id)
                         .await
                         .unwrap_or_else(|| "default".to_string()),
                     message.span_id,
                 );
 
-                gateways
-                    .entry((rcpt.address_lcase.domain_part(), gateway))
+                routes
+                    .entry((rcpt.address_lcase.domain_part(), route))
                     .or_default()
                     .push(rcpt_idx);
             }
@@ -244,7 +244,7 @@ impl QueuedMessage {
 
         let no_ip = IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0));
         let mut delivery_results: Vec<DeliveryResult> = Vec::new();
-        'next_gateway: for ((domain, gateway), rcpt_idxs) in gateways {
+        'next_route: for ((domain, route), rcpt_idxs) in routes {
             trc::event!(
                 Delivery(DeliveryEvent::DomainDeliveryStart),
                 SpanId = message.span_id,
@@ -269,21 +269,21 @@ impl QueuedMessage {
                     );
 
                     delivery_results.push(DeliveryResult::rate_limited(rcpt_idxs, retry_at));
-                    continue 'next_gateway;
+                    continue 'next_route;
                 }
             }
 
             // Obtain next hop
-            let (mut remote_hosts, mx_config, is_smtp) = match gateway {
-                GatewayStrategy::Local => {
+            let (mut remote_hosts, mx_config, is_smtp) = match route {
+                RoutingStrategy::Local => {
                     // Deliver message locally
                     message
                         .deliver_local(&rcpt_idxs, &mut delivery_results, &server)
                         .await;
-                    continue 'next_gateway;
+                    continue 'next_route;
                 }
-                GatewayStrategy::Mx(mx_config) => (Vec::with_capacity(0), Some(mx_config), true),
-                GatewayStrategy::Relay(relay_config) => (
+                RoutingStrategy::Mx(mx_config) => (Vec::with_capacity(0), Some(mx_config), true),
+                RoutingStrategy::Relay(relay_config) => (
                     vec![NextHop::Relay(relay_config)],
                     None,
                     relay_config.protocol == ServerProtocol::Smtp,
@@ -480,7 +480,7 @@ impl QueuedMessage {
                                 Status::from_mta_sts_error(domain, err),
                                 rcpt_idxs,
                             ));
-                            continue 'next_gateway;
+                            continue 'next_route;
                         }
 
                         None
@@ -528,7 +528,7 @@ impl QueuedMessage {
                             Status::from_mail_auth_error(domain, err),
                             rcpt_idxs,
                         ));
-                        continue 'next_gateway;
+                        continue 'next_route;
                     }
                 };
 
@@ -561,7 +561,7 @@ impl QueuedMessage {
                         }),
                         rcpt_idxs,
                     ));
-                    continue 'next_gateway;
+                    continue 'next_route;
                 }
             }
 
@@ -850,7 +850,7 @@ impl QueuedMessage {
                             );
                             delivery_results
                                 .push(DeliveryResult::rate_limited(rcpt_idxs, retry_at));
-                            continue 'next_gateway;
+                            continue 'next_route;
                         }
                     }
 
@@ -1236,8 +1236,8 @@ impl QueuedMessage {
                             .await
                     }
 
-                    // Continue with the next domain/gateway
-                    continue 'next_gateway;
+                    // Continue with the next domain/route
+                    continue 'next_route;
                 }
             }
 

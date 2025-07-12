@@ -294,8 +294,8 @@ impl<'x> ResolveVariable for QueueEnvelope<'x> {
             V_QUEUE_RETRY_NUM => self.rcpt.retry.inner.into(),
             V_QUEUE_NOTIFY_NUM => self.rcpt.notify.inner.into(),
             V_QUEUE_EXPIRES_IN => match &self.rcpt.expires {
-                QueueExpiry::Duration(time) => (*time + self.message.created).saturating_sub(now()),
-                QueueExpiry::Count(count) => (*count) as u64,
+                QueueExpiry::Ttl(time) => (*time + self.message.created).saturating_sub(now()),
+                QueueExpiry::Attempts(count) => (*count) as u64,
             }
             .into(),
             V_QUEUE_LAST_STATUS => self.rcpt.status.to_compact_string().into(),

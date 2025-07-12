@@ -255,7 +255,7 @@ impl RunScript for Server {
                                             (alimit as u64).saturating_sub(message.message.created);
                                         if expires > 0 {
                                             for domain in &mut message.message.recipients {
-                                                domain.expires = QueueExpiry::Duration(expires);
+                                                domain.expires = QueueExpiry::Ttl(expires);
                                             }
                                         }
                                     }

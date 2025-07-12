@@ -247,7 +247,7 @@ impl QueueManagement for Server {
                                             .is_some_and(|expires| expires > time)
                                         {
                                             recipient.expires =
-                                                QueueExpiry::Count(recipient.retry.inner + 10);
+                                                QueueExpiry::Attempts(recipient.retry.inner + 10);
                                         }
                                         has_changes = true;
                                     }
@@ -302,7 +302,8 @@ impl QueueManagement for Server {
                                 .expiration_time(message.message.created)
                                 .is_some_and(|expires| expires > time)
                             {
-                                recipient.expires = QueueExpiry::Count(recipient.retry.inner + 10);
+                                recipient.expires =
+                                    QueueExpiry::Attempts(recipient.retry.inner + 10);
                             }
                             found = true;
                         }
@@ -605,7 +606,7 @@ impl Message {
                     } else {
                         None
                     },
-                    expires: if let ArchivedQueueExpiry::Duration(time) = &rcpt.expires {
+                    expires: if let ArchivedQueueExpiry::Ttl(time) = &rcpt.expires {
                         DateTime::from_timestamp((u64::from(*time) + message.created) as i64).into()
                     } else {
                         None

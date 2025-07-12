@@ -157,9 +157,13 @@ async fn migrate_v0_12(server: &Server, migrate_tasks: bool) -> trc::Result<()> 
         }
     }
 
-    migrate_calendar_events(server)
-        .await
-        .caused_by(trc::location!())
+    if migrate_tasks {
+        migrate_calendar_events(server)
+            .await
+            .caused_by(trc::location!())
+    } else {
+        Ok(())
+    }
 }
 
 async fn migrate_v0_11(server: &Server) -> trc::Result<()> {

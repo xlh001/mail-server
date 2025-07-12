@@ -14,7 +14,7 @@ use crate::smtp::{DnsCache, TestSMTP, session::TestSession};
 
 const LOCAL: &str = r#"
 [queue.strategy]
-gateway = [{if = "retry_num > 0", then = "'fallback'"},
+route = [{if = "retry_num > 0", then = "'fallback'"},
             {else = "'mx'"}]
 
 [session.rcpt]
@@ -24,14 +24,14 @@ max-recipients = 100
 [session.extensions]
 dsn = true
 
-[queue.gateway.fallback]
+[queue.route.fallback]
 type = "relay"
 address = fallback.foobar.org
 port = 9925
 protocol = 'smtp'
 concurrency = 5
 
-[queue.gateway.fallback.tls]
+[queue.route.fallback.tls]
 implicit = false
 allow-invalid-certs = true
 

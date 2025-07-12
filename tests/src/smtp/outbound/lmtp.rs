@@ -32,7 +32,7 @@ dsn = true
 
 const LOCAL: &str = r#"
 [queue.strategy]
-gateway = [{if = "rcpt_domain = 'foobar.org'", then = "'lmtp'"},
+route = [{if = "rcpt_domain = 'foobar.org'", then = "'lmtp'"},
             {else = "'mx'"}]
 schedule = [{if = "rcpt_domain = 'foobar.org'", then = "'foobar'"},
             {else = "'default'"}]
@@ -60,14 +60,14 @@ queue-name = "default"
 connect = "1s"
 data = "50ms"
 
-[queue.gateway.lmtp]
+[queue.route.lmtp]
 type = "relay"
 address = lmtp.foobar.org
 port = 9924
 protocol = 'lmtp'
 concurrency = 5
 
-[queue.gateway.lmtp.tls]
+[queue.route.lmtp.tls]
 implicit = true
 allow-invalid-certs = true
 "#;

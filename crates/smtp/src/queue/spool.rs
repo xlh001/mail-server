@@ -130,7 +130,7 @@ impl SmtpSpool for Server {
             next_refresh: now + QUEUE_REFRESH,
         };
 
-        queue.locked_messages.revision += 1;
+        queue.locked_revision += 1;
         let result = self
             .store()
             .iterate(
@@ -148,10 +148,10 @@ impl SmtpSpool for Server {
                             .stats
                             .get(&queue_name)
                             .is_none_or(|stats| stats.has_capacity())
-                            && match queue.locked_messages.locked.entry((queue_id, queue_name)) {
+                            && match queue.locked.entry((queue_id, queue_name)) {
                                 Entry::Occupied(mut entry) => {
                                     let locked = entry.get_mut();
-                                    locked.revision = queue.locked_messages.revision;
+                                    locked.revision = queue.locked_revision;
                                     if locked.expires <= now {
                                         locked.expires = now + INFINITE_LOCK;
 
@@ -167,7 +167,7 @@ impl SmtpSpool for Server {
                                 Entry::Vacant(entry) => {
                                     entry.insert(LockedMessage {
                                         expires: now + INFINITE_LOCK,
-                                        revision: queue.locked_messages.revision,
+                                        revision: queue.locked_revision,
                                     });
                                     true
                                 }
@@ -507,7 +507,7 @@ impl MessageWrapper {
             orcpt: None,
             retry: Schedule::now(),
             notify: Schedule::now(),
-            expires: QueueExpiry::Count(0),
+            expires: QueueExpiry::Attempts(0),
             queue: QueueName::default(),
         });
         let queue = server.get_queue_or_default(
