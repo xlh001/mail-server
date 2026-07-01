@@ -6,7 +6,7 @@
 
 use crate::utils::{account::Account, server::TestServer};
 use ahash::AHashSet;
-use common::{config::smtp::auth::DkimSigner, network::dns::update::DNS_RECORDS};
+use common::{config::smtp::auth::Dkim1Signer, network::dns::update::DNS_RECORDS};
 use dns_update::{DnsRecord, NamedDnsRecord};
 use registry::{
     schema::{
@@ -316,10 +316,11 @@ impl TestServer {
                 .await
                 .unwrap()
                 .unwrap_or_else(|| panic!("No signatures found: {:?}", selectors))
+                .dkim1
                 .iter()
                 .map(|s| match s {
-                    DkimSigner::RsaSha256(s) => s.template.s.as_str(),
-                    DkimSigner::Ed25519Sha256(s) => s.template.s.as_str(),
+                    Dkim1Signer::RsaSha256(s) => s.template.s.as_str(),
+                    Dkim1Signer::Ed25519Sha256(s) => s.template.s.as_str(),
                 })
                 .collect::<AHashSet<_>>(),
             selectors.iter().copied().collect::<AHashSet<_>>()

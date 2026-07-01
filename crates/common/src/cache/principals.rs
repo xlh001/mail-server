@@ -15,7 +15,7 @@ use crate::{
         DomainCache, EmailAddress, EmailAddressRef, EmailCache, MailingListCache, PermissionsGroup,
         RECOVERY_ADMIN_ID, RoleCache, TenantCache, permissions::BuildPermissions,
     },
-    config::smtp::auth::DkimSigner,
+    config::smtp::auth::DkimSigners,
     expr::if_block::BootstrapExprExt,
     network::mta::AddressResolver,
     storage::{
@@ -839,7 +839,7 @@ impl Server {
         }
     }
 
-    pub async fn dkim_signers(&self, domain: &str) -> trc::Result<Option<Arc<[DkimSigner]>>> {
+    pub async fn dkim_signers(&self, domain: &str) -> trc::Result<Option<Arc<DkimSigners>>> {
         let Some(domain) = self.domain(domain).await? else {
             return Ok(None);
         };
@@ -868,26 +868,24 @@ impl Server {
                             .equal(Property::DomainId, domain.id),
                     )
                     .await?;
-                let mut signatures = Vec::with_capacity(ids.len());
+                let domain_name = &domain.names[0];
+                let mut signers = DkimSigners {
+                    dkim1: Vec::with_capacity(ids.len()),
+                    dkim2: None,
+                };
                 for id in ids {
                     if let Some(signature) = self.registry().object::<DkimSignature>(id).await?
                         && matches!(signature.stage(), DkimRotationStage::Active)
+                        && let Err(err) = signers.insert(domain_name.to_string(), signature).await
                     {
-                        match DkimSigner::new(domain.names[0].to_string(), signature).await {
-                            Ok(signer) => signatures.push(signer),
-                            Err(err) => {
-                                trc::error!(
-                                    err.ctx(trc::Key::Id, id.id()).caused_by(trc::location!())
-                                );
-                            }
-                        }
+                        trc::error!(err.ctx(trc::Key::Id, id.id()).caused_by(trc::location!()));
                     }
                 }
 
-                if !signatures.is_empty() {
-                    let signatures: Arc<[DkimSigner]> = signatures.into();
-                    let _ = guard.insert(signatures.clone());
-                    Ok(Some(signatures))
+                if !signers.dkim1.is_empty() || signers.dkim2.is_some() {
+                    let signers = Arc::new(signers);
+                    let _ = guard.insert(signers.clone());
+                    Ok(Some(signers))
                 } else {
                     Ok(None)
                 }

@@ -9339,6 +9339,12 @@ impl DmarcTroubleshoot {
         if value.is_empty() {
             errors.push(ValidationError::required(Property::MailFrom));
         }
+        let value = &self.to;
+        for value in value.iter() {
+            if value.is_empty() {
+                errors.push(ValidationError::required(Property::To));
+            }
+        }
         if let Some(value) = &self.message {
             if value.is_empty() {
                 errors.push(ValidationError::required(Property::Message));
@@ -9368,6 +9374,8 @@ impl DmarcTroubleshoot {
         for value in value.values() {
             value.validate(errors);
         }
+        let value = &self.dkim2_result;
+        value.validate(errors);
         let value = &self.arc_result;
         value.validate(errors);
         let value = &self.dmarc_result;
@@ -9381,6 +9389,7 @@ impl Pickle for DmarcTroubleshoot {
         self.remote_ip.pickle(out);
         self.ehlo_domain.pickle(out);
         self.mail_from.pickle(out);
+        self.to.pickle(out);
         self.message.pickle(out);
         self.spf_ehlo_domain.pickle(out);
         self.spf_ehlo_result.pickle(out);
@@ -9390,6 +9399,8 @@ impl Pickle for DmarcTroubleshoot {
         self.ip_rev_ptr.pickle(out);
         self.dkim_results.pickle(out);
         self.dkim_pass.pickle(out);
+        self.dkim2_result.pickle(out);
+        self.dkim2_pass.pickle(out);
         self.arc_result.pickle(out);
         self.dmarc_result.pickle(out);
         self.dmarc_pass.pickle(out);
@@ -9402,6 +9413,7 @@ impl Pickle for DmarcTroubleshoot {
         this.remote_ip = Pickle::unpickle(stream)?;
         this.ehlo_domain = Pickle::unpickle(stream)?;
         this.mail_from = Pickle::unpickle(stream)?;
+        this.to = Pickle::unpickle(stream)?;
         this.message = Pickle::unpickle(stream)?;
         this.spf_ehlo_domain = Pickle::unpickle(stream)?;
         this.spf_ehlo_result = Pickle::unpickle(stream)?;
@@ -9411,6 +9423,8 @@ impl Pickle for DmarcTroubleshoot {
         this.ip_rev_ptr = Pickle::unpickle(stream)?;
         this.dkim_results = Pickle::unpickle(stream)?;
         this.dkim_pass = Pickle::unpickle(stream)?;
+        this.dkim2_result = Pickle::unpickle(stream)?;
+        this.dkim2_pass = Pickle::unpickle(stream)?;
         this.arc_result = Pickle::unpickle(stream)?;
         this.dmarc_result = Pickle::unpickle(stream)?;
         this.dmarc_pass = Pickle::unpickle(stream)?;
@@ -9426,6 +9440,7 @@ impl Default for DmarcTroubleshoot {
             remote_ip: Default::default(),
             ehlo_domain: Default::default(),
             mail_from: Default::default(),
+            to: Default::default(),
             message: Default::default(),
             spf_ehlo_domain: Default::default(),
             spf_ehlo_result: Default::default(),
@@ -9435,6 +9450,8 @@ impl Default for DmarcTroubleshoot {
             ip_rev_ptr: Default::default(),
             dkim_results: Default::default(),
             dkim_pass: false,
+            dkim2_result: Default::default(),
+            dkim2_pass: false,
             arc_result: Default::default(),
             dmarc_result: Default::default(),
             dmarc_pass: false,
@@ -9446,10 +9463,11 @@ impl Default for DmarcTroubleshoot {
 
 impl IntoValue for DmarcTroubleshoot {
     fn into_value(self) -> JmapValue<'static> {
-        let mut map = jmap_tools::Map::with_capacity(19);
+        let mut map = jmap_tools::Map::with_capacity(22);
         map.insert_unchecked(Property::RemoteIp, self.remote_ip.into_value());
         map.insert_unchecked(Property::EhloDomain, self.ehlo_domain.into_value());
         map.insert_unchecked(Property::MailFrom, self.mail_from.into_value());
+        map.insert_unchecked(Property::To, self.to.into_value());
         map.insert_unchecked(Property::Message, self.message.into_value());
         map.insert_unchecked(Property::SpfEhloDomain, self.spf_ehlo_domain.into_value());
         map.insert_unchecked(Property::SpfEhloResult, self.spf_ehlo_result.into_value());
@@ -9465,6 +9483,8 @@ impl IntoValue for DmarcTroubleshoot {
         map.insert_unchecked(Property::IpRevPtr, self.ip_rev_ptr.into_value());
         map.insert_unchecked(Property::DkimResults, self.dkim_results.into_value());
         map.insert_unchecked(Property::DkimPass, self.dkim_pass.into_value());
+        map.insert_unchecked(Property::Dkim2Result, self.dkim2_result.into_value());
+        map.insert_unchecked(Property::Dkim2Pass, self.dkim2_pass.into_value());
         map.insert_unchecked(Property::ArcResult, self.arc_result.into_value());
         map.insert_unchecked(Property::DmarcResult, self.dmarc_result.into_value());
         map.insert_unchecked(Property::DmarcPass, self.dmarc_pass.into_value());
@@ -9486,6 +9506,9 @@ impl RegistryJsonPropertyPatch for DmarcTroubleshoot {
             Some(Property::MailFrom) => self
                 .mail_from
                 .patch(pointer.with_validators(&[StringValidator::Email]), value),
+            Some(Property::To) => self
+                .to
+                .patch(pointer.with_validators(&[StringValidator::Email]), value),
             Some(Property::Message) => self.message.patch(pointer, value),
             Some(Property::SpfEhloDomain) => self.spf_ehlo_domain.patch(pointer, value),
             Some(Property::SpfEhloResult) => pointer.assert_server_set(),
@@ -9495,6 +9518,8 @@ impl RegistryJsonPropertyPatch for DmarcTroubleshoot {
             Some(Property::IpRevPtr) => pointer.assert_server_set(),
             Some(Property::DkimResults) => pointer.assert_server_set(),
             Some(Property::DkimPass) => pointer.assert_server_set(),
+            Some(Property::Dkim2Result) => pointer.assert_server_set(),
+            Some(Property::Dkim2Pass) => pointer.assert_server_set(),
             Some(Property::ArcResult) => pointer.assert_server_set(),
             Some(Property::DmarcResult) => pointer.assert_server_set(),
             Some(Property::DmarcPass) => pointer.assert_server_set(),

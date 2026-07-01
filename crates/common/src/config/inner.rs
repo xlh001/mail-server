@@ -13,7 +13,7 @@ use crate::{
         mailstore::spamfilter::SpamClassifier,
         server::tls::parse_certificates,
         smtp::{
-            auth::DkimSigner,
+            auth::DkimSigners,
             resolver::{Policy, Tlsa},
         },
     },
@@ -164,7 +164,7 @@ impl Caches {
             ),
             dkim_signers: Cache::new(
                 cache.dkim_signatures,
-                (std::mem::size_of::<DkimSigner>() + 255) as u64,
+                (std::mem::size_of::<DkimSigners>() + 255) as u64,
             ),
             dns_txt: CacheWithTtl::new(cache.dns_txt, (std::mem::size_of::<Txt>() + 255) as u64),
             dns_mx: CacheWithTtl::new(cache.dns_mx, ((std::mem::size_of::<MX>() + 255) * 2) as u64),

@@ -897,6 +897,30 @@ impl From<&mail_auth::DkimResult> for structs::DmarcTroubleshootAuthResult {
     }
 }
 
+impl From<&mail_auth::Dkim2Result> for structs::DmarcTroubleshootAuthResult {
+    fn from(value: &mail_auth::Dkim2Result) -> Self {
+        match value {
+            mail_auth::Dkim2Result::Pass => structs::DmarcTroubleshootAuthResult::Pass,
+            mail_auth::Dkim2Result::Fail(error) => {
+                structs::DmarcTroubleshootAuthResult::Fail(structs::DmarcTroubleshootDetails {
+                    details: error.to_string().into(),
+                })
+            }
+            mail_auth::Dkim2Result::PermError(error) => {
+                structs::DmarcTroubleshootAuthResult::PermError(structs::DmarcTroubleshootDetails {
+                    details: error.to_string().into(),
+                })
+            }
+            mail_auth::Dkim2Result::TempError(error) => {
+                structs::DmarcTroubleshootAuthResult::TempError(structs::DmarcTroubleshootDetails {
+                    details: error.to_string().into(),
+                })
+            }
+            mail_auth::Dkim2Result::None => structs::DmarcTroubleshootAuthResult::None,
+        }
+    }
+}
+
 impl From<&mail_auth::DmarcResult> for structs::DmarcTroubleshootAuthResult {
     fn from(value: &mail_auth::DmarcResult) -> Self {
         match value {

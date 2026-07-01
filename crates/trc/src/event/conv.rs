@@ -442,6 +442,36 @@ impl From<&mail_auth::DkimResult> for Error {
     }
 }
 
+impl From<&mail_auth::Dkim2Result> for Error {
+    fn from(value: &mail_auth::Dkim2Result) -> Self {
+        match value.clone() {
+            mail_auth::Dkim2Result::Pass => Error::new(EventType::Dkim(DkimEvent::Pass)),
+            mail_auth::Dkim2Result::Fail(err) => {
+                Error::new(EventType::Dkim(DkimEvent::Fail)).caused_by(Error::from(err))
+            }
+            mail_auth::Dkim2Result::PermError(err) => {
+                Error::new(EventType::Dkim(DkimEvent::PermError)).caused_by(Error::from(err))
+            }
+            mail_auth::Dkim2Result::TempError(err) => {
+                Error::new(EventType::Dkim(DkimEvent::TempError)).caused_by(Error::from(err))
+            }
+            mail_auth::Dkim2Result::None => Error::new(EventType::Dkim(DkimEvent::None)),
+        }
+    }
+}
+
+impl From<&mail_auth::dkim2::Dkim2Output<'_>> for Error {
+    fn from(value: &mail_auth::dkim2::Dkim2Output<'_>) -> Self {
+        Error::from(value.result()).ctx_opt(
+            Key::Domain,
+            value
+                .chain()
+                .first()
+                .map(|link| link.signature.d.to_compact_string()),
+        )
+    }
+}
+
 impl From<&mail_auth::DmarcResult> for Error {
     fn from(value: &mail_auth::DmarcResult) -> Self {
         match value.clone() {

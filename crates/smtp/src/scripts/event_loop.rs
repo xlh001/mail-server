@@ -282,7 +282,7 @@ impl RunScript for Server {
                                     Ok(Some(signers)) => {
                                         let mut headers = Vec::new();
 
-                                        for signer in signers.as_ref() {
+                                        for signer in &signers.dkim1 {
                                             match signer.sign(raw_message) {
                                                 Ok(signature) => {
                                                     signature.write_header(&mut headers);

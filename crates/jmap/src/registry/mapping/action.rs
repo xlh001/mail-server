@@ -14,8 +14,8 @@ use common::{
 use jmap_proto::error::set::{SetError, SetErrorType};
 use jmap_tools::{JsonPointer, Key};
 use mail_auth::{
-    AuthenticatedMessage, DkimResult, DmarcResult, dmarc::verify::DmarcParameters,
-    spf::verify::SpfParameters,
+    AuthenticatedMessage, Dkim2Result, DkimResult, DmarcResult, dkim2::Envelope as Dkim2Envelope,
+    dmarc::verify::DmarcParameters, spf::verify::SpfParameters,
 };
 use mail_parser::MessageParser;
 use registry::{
@@ -158,6 +158,7 @@ pub(crate) async fn action_set(
                                         | Property::RemoteIp
                                         | Property::EhloDomain
                                         | Property::MailFrom
+                                        | Property::To
                                 )
                             )
                         });
@@ -320,6 +321,20 @@ async fn classify_spam(server: &Server, mut request: SpamClassify) -> Option<Spa
         .verify_arc(server.inner.cache.build_auth_parameters(&auth_message))
         .await;
 
+    let dkim2_output = server
+        .core
+        .smtp
+        .resolvers
+        .dns
+        .verify_dkim2(
+            server.inner.cache.build_auth_parameters(&auth_message),
+            Dkim2Envelope {
+                mail_from: &mail_from,
+                rcpt_to: request.env_rcpt_to.iter(),
+            },
+        )
+        .await;
+
     let dmarc_output = server
         .core
         .smtp
@@ -328,6 +343,7 @@ async fn classify_spam(server: &Server, mut request: SpamClassify) -> Option<Spa
         .verify_dmarc(server.inner.cache.build_auth_parameters(DmarcParameters {
             message: &auth_message,
             dkim_output: &dkim_output,
+            dkim2_output: Some(&dkim2_output),
             rfc5321_mail_from_domain: mail_from_domain.unwrap_or(ehlo_domain.as_str()),
             spf_output: &spf_mail_from_result,
             domain_suffix_fn: |domain| psl::domain_str(domain).unwrap_or(domain),
@@ -355,6 +371,7 @@ async fn classify_spam(server: &Server, mut request: SpamClassify) -> Option<Spa
         spf_ehlo_result: Some(&spf_ehlo_result),
         spf_mail_from_result: Some(&spf_mail_from_result),
         dkim_result: dkim_output.as_slice(),
+        dkim2_result: Some(&dkim2_output),
         dmarc_result: Some(&dmarc_result),
         dmarc_policy: Some(&dmarc_policy),
         iprev_result: Some(&iprev_result),
@@ -498,6 +515,21 @@ async fn dmarc_troubleshoot(
         .iter()
         .any(|d| matches!(d.result(), DkimResult::Pass));
 
+    let dkim2_output = server
+        .core
+        .smtp
+        .resolvers
+        .dns
+        .verify_dkim2(
+            server.inner.cache.build_auth_parameters(&auth_message),
+            Dkim2Envelope {
+                mail_from: &mail_from,
+                rcpt_to: request.to.iter(),
+            },
+        )
+        .await;
+    let dkim2_pass = matches!(dkim2_output.result(), Dkim2Result::Pass);
+
     let arc_output = server
         .core
         .smtp
@@ -514,6 +546,7 @@ async fn dmarc_troubleshoot(
         .verify_dmarc(server.inner.cache.build_auth_parameters(DmarcParameters {
             message: &auth_message,
             dkim_output: &dkim_output,
+            dkim2_output: Some(&dkim2_output),
             rfc5321_mail_from_domain: mail_from_domain.unwrap_or(ehlo_domain.as_str()),
             spf_output: &mail_spf_output,
             domain_suffix_fn: |domain| psl::domain_str(domain).unwrap_or(domain),
@@ -547,6 +580,8 @@ async fn dmarc_troubleshoot(
         .into();
     request.ip_rev_result = (&iprev).into();
     request.dkim_pass = dkim_pass;
+    request.dkim2_result = dkim2_output.result().into();
+    request.dkim2_pass = dkim2_pass;
     request.dkim_results = dkim_output
         .iter()
         .map(|result| result.result().into())

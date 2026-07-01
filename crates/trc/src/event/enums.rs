@@ -6,8 +6,8 @@
 
 // This file is auto-generated. Do not edit directly.
 
-pub const TOTAL_EVENT_COUNT: usize = 630;
-pub const TOTAL_METRIC_COUNT: usize = 364;
+pub const TOTAL_EVENT_COUNT: usize = 633;
+pub const TOTAL_METRIC_COUNT: usize = 367;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EventType {
@@ -681,6 +681,9 @@ pub enum SmtpEvent {
     LoopDetected = 443,
     DkimPass = 422,
     DkimFail = 421,
+    Dkim2Pass = 630,
+    Dkim2Fail = 631,
+    Dkim2DsnDiscarded = 632,
     ArcPass = 410,
     ArcFail = 409,
     SpfEhloPass = 474,
@@ -1182,6 +1185,9 @@ pub enum MetricType {
     SmtpLoopDetected = 255,
     SmtpDkimPass = 256,
     SmtpDkimFail = 257,
+    SmtpDkim2Pass = 364,
+    SmtpDkim2Fail = 365,
+    SmtpDkim2DsnDiscarded = 366,
     SmtpArcPass = 258,
     SmtpArcFail = 259,
     SmtpSpfEhloPass = 260,

@@ -463,6 +463,8 @@ pub enum Property {
     DisabledPermissions = 629,
     DiscardAfter = 872,
     Disposition = 747,
+    Dkim2Pass = 917,
+    Dkim2Result = 916,
     DkimAdspDns = 83,
     DkimCanonicalizedBody = 84,
     DkimCanonicalizedHeader = 85,

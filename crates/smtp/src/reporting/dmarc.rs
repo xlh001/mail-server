@@ -21,6 +21,7 @@ use mail_auth::{
     ArcOutput, AuthenticatedMessage, AuthenticationResults, DkimOutput, DkimResult, DmarcOutput,
     SpfResult,
     common::verify::VerifySignature,
+    dkim2::Dkim2Output,
     dmarc::{self},
     report::{AuthFailureType, IdentityAlignment, PolicyPublished, Record, SPFDomainScope},
 };
@@ -50,6 +51,7 @@ impl<T: SessionStream> Session<T> {
         rejected: bool,
         dmarc_output: DmarcOutput,
         dkim_output: &[DkimOutput<'_>],
+        dkim2_output: Option<&Dkim2Output<'_>>,
         arc_output: &Option<ArcOutput<'_>>,
     ) {
         let dmarc_record = dmarc_output.dmarc_record_cloned().unwrap();
@@ -282,6 +284,9 @@ impl<T: SessionStream> Session<T> {
                     .map(|mf| mf.domain.as_str())
                     .unwrap_or_else(|| self.data.helo_domain.as_str()),
             );
+        if let Some(dkim2_output) = dkim2_output {
+            report_record = report_record.with_dkim2_output(dkim2_output);
+        }
         if let Some(spf_ehlo) = &self.data.spf_ehlo {
             report_record = report_record.with_spf_output(spf_ehlo, SPFDomainScope::Helo);
         }

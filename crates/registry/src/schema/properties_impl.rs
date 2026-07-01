@@ -616,6 +616,8 @@ impl EnumImpl for Property {
             b"disabledPermissions" => Property::DisabledPermissions,
             b"discardAfter" => Property::DiscardAfter,
             b"disposition" => Property::Disposition,
+            b"dkim2Pass" => Property::Dkim2Pass,
+            b"dkim2Result" => Property::Dkim2Result,
             b"dkimAdspDns" => Property::DkimAdspDns,
             b"dkimCanonicalizedBody" => Property::DkimCanonicalizedBody,
             b"dkimCanonicalizedHeader" => Property::DkimCanonicalizedHeader,
@@ -1537,6 +1539,8 @@ impl EnumImpl for Property {
             Property::DisabledPermissions => "disabledPermissions",
             Property::DiscardAfter => "discardAfter",
             Property::Disposition => "disposition",
+            Property::Dkim2Pass => "dkim2Pass",
+            Property::Dkim2Result => "dkim2Result",
             Property::DkimAdspDns => "dkimAdspDns",
             Property::DkimCanonicalizedBody => "dkimCanonicalizedBody",
             Property::DkimCanonicalizedHeader => "dkimCanonicalizedHeader",
@@ -2462,6 +2466,8 @@ impl EnumImpl for Property {
             629 => Some(Property::DisabledPermissions),
             872 => Some(Property::DiscardAfter),
             747 => Some(Property::Disposition),
+            917 => Some(Property::Dkim2Pass),
+            916 => Some(Property::Dkim2Result),
             83 => Some(Property::DkimAdspDns),
             84 => Some(Property::DkimCanonicalizedBody),
             85 => Some(Property::DkimCanonicalizedHeader),
@@ -3173,7 +3179,7 @@ impl EnumImpl for Property {
         }
     }
 
-    const COUNT: usize = 916;
+    const COUNT: usize = 918;
 }
 
 impl serde::Serialize for Property {

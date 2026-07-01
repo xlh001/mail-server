@@ -300,77 +300,79 @@ impl QueuedMessage {
             );
 
             // Obtain TLS reporting
-            let tls_report =
-                if is_smtp && mx_config.is_some() && (message.message.flags & FROM_REPORT == 0) {
-                    match server
-                        .eval_if(
-                            &server.core.smtp.report.tls.send,
-                            &envelope,
-                            message.span_id,
-                        )
-                        .await
-                        .unwrap_or(AggregateFrequency::Never)
-                    {
-                        interval @ (AggregateFrequency::Hourly
-                        | AggregateFrequency::Daily
-                        | AggregateFrequency::Weekly) => {
-                            let time = Instant::now();
-                            match server
-                                .core
-                                .smtp
-                                .resolvers
-                                .dns
-                                .txt_lookup::<TlsRpt>(
-                                    format!("_smtp._tls.{domain}."),
-                                    Some(&server.inner.cache.dns_txt),
-                                )
-                                .await
-                            {
-                                Ok(record) => {
-                                    trc::event!(
-                                        TlsRpt(TlsRptEvent::RecordFetch),
-                                        SpanId = message.span_id,
-                                        Domain = domain.to_string(),
-                                        Details = record
-                                            .rua
-                                            .iter()
-                                            .map(|uri| trc::Value::from(match uri {
-                                                mail_auth::mta_sts::ReportUri::Mail(uri)
-                                                | mail_auth::mta_sts::ReportUri::Http(uri) =>
-                                                    uri.to_string(),
-                                            }))
-                                            .collect::<Vec<_>>(),
-                                        Elapsed = time.elapsed(),
-                                    );
+            let tls_report = if is_smtp
+                && mx_config.is_some()
+                && (message.message.flags & FROM_REPORT == 0)
+            {
+                match server
+                    .eval_if(
+                        &server.core.smtp.report.tls.send,
+                        &envelope,
+                        message.span_id,
+                    )
+                    .await
+                    .unwrap_or(AggregateFrequency::Never)
+                {
+                    interval @ (AggregateFrequency::Hourly
+                    | AggregateFrequency::Daily
+                    | AggregateFrequency::Weekly) => {
+                        let time = Instant::now();
+                        match server
+                            .core
+                            .smtp
+                            .resolvers
+                            .dns
+                            .txt_lookup::<TlsRpt>(
+                                format!("_smtp._tls.{domain}."),
+                                Some(&server.inner.cache.dns_txt),
+                            )
+                            .await
+                        {
+                            Ok(record) => {
+                                trc::event!(
+                                    TlsRpt(TlsRptEvent::RecordFetch),
+                                    SpanId = message.span_id,
+                                    Domain = domain.to_string(),
+                                    Details = record
+                                        .rua
+                                        .iter()
+                                        .map(|uri| trc::Value::from(match uri {
+                                            mail_auth::mta_sts::ReportUri::Mail(uri)
+                                            | mail_auth::mta_sts::ReportUri::Http(uri) =>
+                                                uri.to_string(),
+                                        }))
+                                        .collect::<Vec<_>>(),
+                                    Elapsed = time.elapsed(),
+                                );
 
-                                    TlsRptOptions { record, interval }.into()
-                                }
-                                Err(mail_auth::Error::Dns(mail_auth::DnsError::RecordNotFound(_))) => {
-                                    trc::event!(
-                                        TlsRpt(TlsRptEvent::RecordNotFound),
-                                        SpanId = message.span_id,
-                                        Domain = domain.to_string(),
-                                        Elapsed = time.elapsed(),
-                                    );
-                                    None
-                                }
-                                Err(err) => {
-                                    trc::event!(
-                                        TlsRpt(TlsRptEvent::RecordFetchError),
-                                        SpanId = message.span_id,
-                                        Domain = domain.to_string(),
-                                        CausedBy = trc::Error::from(err),
-                                        Elapsed = time.elapsed(),
-                                    );
-                                    None
-                                }
+                                TlsRptOptions { record, interval }.into()
+                            }
+                            Err(mail_auth::Error::Dns(mail_auth::DnsError::RecordNotFound(_))) => {
+                                trc::event!(
+                                    TlsRpt(TlsRptEvent::RecordNotFound),
+                                    SpanId = message.span_id,
+                                    Domain = domain.to_string(),
+                                    Elapsed = time.elapsed(),
+                                );
+                                None
+                            }
+                            Err(err) => {
+                                trc::event!(
+                                    TlsRpt(TlsRptEvent::RecordFetchError),
+                                    SpanId = message.span_id,
+                                    Domain = domain.to_string(),
+                                    CausedBy = trc::Error::from(err),
+                                    Elapsed = time.elapsed(),
+                                );
+                                None
                             }
                         }
-                        _ => None,
                     }
-                } else {
-                    None
-                };
+                    _ => None,
+                }
+            } else {
+                None
+            };
 
             // Obtain MTA-STS policy for domain
             let mta_sts_policy = if mx_config.is_some() && tls_strategy.try_mta_sts() && is_smtp {
@@ -400,7 +402,9 @@ impl QueuedMessage {
                         let strict = tls_strategy.is_mta_sts_required();
                         if let Some(tls_report) = &tls_report {
                             match &err {
-                                mta_sts::Error::Dns(mail_auth::Error::Dns(mail_auth::DnsError::RecordNotFound(_))) => {
+                                mta_sts::Error::Dns(mail_auth::Error::Dns(
+                                    mail_auth::DnsError::RecordNotFound(_),
+                                )) => {
                                     if strict {
                                         server.schedule_report(TlsEvent {
                                             policy: PolicyType::Sts(None),
@@ -417,7 +421,9 @@ impl QueuedMessage {
                                         .await;
                                     }
                                 }
-                                mta_sts::Error::Dns(mail_auth::Error::Dns(mail_auth::DnsError::Resolver(_))) => (),
+                                mta_sts::Error::Dns(mail_auth::Error::Dns(
+                                    mail_auth::DnsError::Resolver(_),
+                                )) => (),
                                 _ => {
                                     server
                                         .schedule_report(TlsEvent {
@@ -436,7 +442,9 @@ impl QueuedMessage {
                         }
 
                         match &err {
-                            mta_sts::Error::Dns(mail_auth::Error::Dns(mail_auth::DnsError::RecordNotFound(_))) => {
+                            mta_sts::Error::Dns(mail_auth::Error::Dns(
+                                mail_auth::DnsError::RecordNotFound(_),
+                            )) => {
                                 trc::event!(
                                     MtaSts(MtaStsEvent::PolicyNotFound),
                                     SpanId = message.span_id,
@@ -821,8 +829,12 @@ impl QueuedMessage {
                                     None
                                 }
                                 Err(err) => {
-                                    let not_found =
-                                        matches!(&err, mail_auth::Error::Dns(mail_auth::DnsError::RecordNotFound(_)));
+                                    let not_found = matches!(
+                                        &err,
+                                        mail_auth::Error::Dns(mail_auth::DnsError::RecordNotFound(
+                                            _
+                                        ))
+                                    );
 
                                     if not_found {
                                         trc::event!(

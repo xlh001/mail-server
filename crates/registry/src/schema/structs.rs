@@ -1225,6 +1225,8 @@ pub struct DmarcTroubleshoot {
     pub ehlo_domain: String,
     #[serde(rename = "mailFrom")]
     pub mail_from: String,
+    #[serde(rename = "to")]
+    pub to: Map<String>,
     #[serde(rename = "message")]
     pub message: Option<String>,
     #[serde(rename = "spfEhloDomain")]
@@ -1243,6 +1245,10 @@ pub struct DmarcTroubleshoot {
     pub dkim_results: List<DmarcTroubleshootAuthResult>,
     #[serde(rename = "dkimPass")]
     pub dkim_pass: bool,
+    #[serde(rename = "dkim2Result")]
+    pub dkim2_result: DmarcTroubleshootAuthResult,
+    #[serde(rename = "dkim2Pass")]
+    pub dkim2_pass: bool,
     #[serde(rename = "arcResult")]
     pub arc_result: DmarcTroubleshootAuthResult,
     #[serde(rename = "dmarcResult")]

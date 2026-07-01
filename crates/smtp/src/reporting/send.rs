@@ -151,7 +151,7 @@ impl MtaReportSend for Server {
             Ok(Some(signers)) => {
                 let mut headers = Vec::with_capacity(64);
 
-                for signer in signers.as_ref() {
+                for signer in &signers.dkim1 {
                     match signer.sign(bytes) {
                         Ok(signature) => {
                             signature.write_header(&mut headers);

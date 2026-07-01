@@ -4393,11 +4393,13 @@ version = "0.11.0"
 dependencies = [
  "aws-lc-rs",
  "flate2",
+ "getrandom 0.2.17",
+ "getrandom 0.4.3",
  "hashify",
  "hickory-resolver",
  "mail-builder",
  "mail-parser",
- "quick-xml 0.40.1",
+ "quick-xml 0.41.0",
  "rand 0.8.6",
  "rkyv",
  "rsa",
@@ -5927,6 +5929,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "quick-xml"
+version = "0.41.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e660451e55124f798a69a5af3f49ccfbefbd41910eefd25caf2393e1f3473ec1"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
 name = "quick_cache"
 version = "0.6.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6811,9 +6822,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-pki-types"
-version = "1.14.1"
+version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30a7197ae7eb376e574fe940d068c30fe0462554a3ddbe4eca7838e049c937a9"
+checksum = "764899a24af3980067ee14bc143654f297b22eaebfe3c7b6b211920a5a59b046"
 dependencies = [
  "web-time",
  "zeroize",

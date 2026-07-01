@@ -10,7 +10,7 @@ use crate::{
     config::{
         mailstore::spamfilter::SpamClassifier,
         smtp::{
-            auth::DkimSigner,
+            auth::DkimSigners,
             queue::{
                 ConnectionStrategy, DEFAULT_QUEUE_NAME, MxConfig, QueueExpiry, QueueName,
                 QueueStrategy, RequireOptional, RoutingStrategy, TlsStrategy, VirtualQueue,
@@ -188,7 +188,7 @@ impl Server {
         &self,
         domain: &str,
         session_id: u64,
-    ) -> trc::Result<Option<Arc<[DkimSigner]>>> {
+    ) -> trc::Result<Option<Arc<DkimSigners>>> {
         if let Some(signers) = self.dkim_signers(domain).await? {
             Ok(Some(signers))
         } else {
