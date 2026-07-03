@@ -19,11 +19,11 @@ use std::{
 };
 
 pub struct Cache<K: Eq + Hash + CacheItemWeight, V: Clone + CacheItemWeight>(
-    quick_cache::sync::Cache<K, V, CacheItemWeighter>,
+    quick_cache::sync::Cache<K, V, CacheItemWeighter, ahash::RandomState>,
 );
 
 pub struct CacheWithTtl<K: Eq + Hash + CacheItemWeight, V: Clone + CacheItemWeight>(
-    quick_cache::sync::Cache<K, TtlEntry<V>, CacheItemWeighter>,
+    quick_cache::sync::Cache<K, TtlEntry<V>, CacheItemWeighter, ahash::RandomState>,
 );
 
 #[derive(Clone)]
@@ -38,10 +38,12 @@ impl<K: Eq + Hash + CacheItemWeight, V: Clone + CacheItemWeight> Cache<K, V> {
     }
 
     pub fn new_estimated(estimated_items_capacity: usize, weight_capacity: u64) -> Self {
-        Self(quick_cache::sync::Cache::with_weighter(
+        Self(quick_cache::sync::Cache::with(
             estimated_items_capacity,
             weight_capacity,
             CacheItemWeighter,
+            ahash::RandomState::default(),
+            DefaultLifecycle::default(),
         ))
     }
 
@@ -101,7 +103,7 @@ impl<K: Eq + Hash + CacheItemWeight, V: Clone + CacheItemWeight> Cache<K, V> {
     }
 
     #[inline(always)]
-    pub fn inner(&self) -> &quick_cache::sync::Cache<K, V, CacheItemWeighter> {
+    pub fn inner(&self) -> &quick_cache::sync::Cache<K, V, CacheItemWeighter, ahash::RandomState> {
         &self.0
     }
 }
@@ -112,10 +114,12 @@ impl<K: Eq + Hash + CacheItemWeight, V: Clone + CacheItemWeight> CacheWithTtl<K,
     }
 
     pub fn new_estimated(estimated_items_capacity: usize, weight_capacity: u64) -> Self {
-        Self(quick_cache::sync::Cache::with_weighter(
+        Self(quick_cache::sync::Cache::with(
             estimated_items_capacity,
             weight_capacity,
             CacheItemWeighter,
+            ahash::RandomState::default(),
+            DefaultLifecycle::default(),
         ))
     }
 
