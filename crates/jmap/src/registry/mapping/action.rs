@@ -238,8 +238,9 @@ pub(crate) async fn action_set(
 
 async fn classify_spam(server: &Server, mut request: SpamClassify) -> Option<SpamClassify> {
     // Built spam filter input
+    let raw_message = request.message.as_bytes();
     let message = MessageParser::new()
-        .parse(request.message.as_bytes())
+        .parse(raw_message)
         .filter(|m| m.root_part().headers().iter().any(|h| !h.name.is_other()))?;
 
     let remote_ip = request.remote_ip.into_inner();
@@ -303,7 +304,7 @@ async fn classify_spam(server: &Server, mut request: SpamClassify) -> Option<Spa
             .await
     };
 
-    let auth_message = AuthenticatedMessage::from_parsed(&message, true);
+    let auth_message = AuthenticatedMessage::from_parsed(&message, raw_message, true);
 
     let dkim_output = server
         .core
@@ -502,7 +503,7 @@ async fn dmarc_troubleshoot(
         .message
         .take()
         .unwrap_or_else(|| format!("From: {mail_from}\r\nSubject: test\r\n\r\ntest"));
-    let auth_message = AuthenticatedMessage::parse_with_opts(body.as_bytes(), true)?;
+    let auth_message = AuthenticatedMessage::parse_with_opts(body.as_bytes(), None, true)?;
 
     let dkim_output = server
         .core

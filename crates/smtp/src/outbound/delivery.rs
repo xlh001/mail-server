@@ -19,7 +19,8 @@ use crate::queue::dsn::SendDsn;
 use crate::queue::spool::SmtpSpool;
 use crate::queue::throttle::IsAllowed;
 use crate::queue::{
-    Error, FROM_REPORT, HostResponse, MessageWrapper, QueueEnvelope, QueuedMessage, Status,
+    Error, FROM_REPORT, HostResponse, MessageWrapper, Metadata, QueueEnvelope, QueuedMessage,
+    Status,
 };
 use crate::reporting::send::MtaReportSend;
 use crate::{queue::ErrorDetails, reporting::tls::TlsRptOptions};
@@ -147,6 +148,7 @@ impl QueuedMessage {
         });
     }
 
+    #[allow(clippy::type_complexity)]
     async fn deliver_task(self, server: Server, mut message: MessageWrapper) -> QueueEventStatus {
         // Check that the message still has recipients to be delivered
         let has_pending_delivery = message.has_pending_delivery();
@@ -218,7 +220,19 @@ impl QueuedMessage {
         // Group recipients by route
         let queue_config = &server.core.smtp.queue;
         let now_ = now();
-        let mut routes: AHashMap<(&str, &RoutingStrategy), Vec<usize>> = AHashMap::new();
+        let mut routes: AHashMap<(&str, &RoutingStrategy, Option<&[u8]>), Vec<usize>> =
+            AHashMap::new();
+        let mut has_rcpt_headers = false;
+        let mut default_rcpt_header = None;
+        for metadata in message.message.metadata.iter() {
+            if let Metadata::Headers { value, id } = metadata {
+                has_rcpt_headers = true;
+                if *id == u64::MAX {
+                    default_rcpt_header = Some(value.as_ref());
+                    break;
+                }
+            }
+        }
         for (rcpt_idx, rcpt) in message.message.recipients.iter().enumerate() {
             if matches!(
                 &rcpt.status,
@@ -235,8 +249,21 @@ impl QueuedMessage {
                     message.span_id,
                 );
 
+                // Map RCPT headers
+                let mut rcpt_headers = default_rcpt_header;
+                if has_rcpt_headers {
+                    for metadata in message.message.metadata.iter() {
+                        if let Metadata::Headers { value, id } = metadata
+                            && *id == rcpt_idx as u64
+                        {
+                            rcpt_headers = Some(value.as_ref());
+                            break;
+                        }
+                    }
+                }
+
                 routes
-                    .entry((rcpt.domain_part(), route))
+                    .entry((rcpt.domain_part(), route, rcpt_headers))
                     .or_default()
                     .push(rcpt_idx);
             }
@@ -244,7 +271,7 @@ impl QueuedMessage {
 
         let no_ip = IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0));
         let mut delivery_results: Vec<DeliveryResult> = Vec::new();
-        'next_route: for ((domain, route), rcpt_idxs) in routes {
+        'next_route: for ((domain, route, rcpt_headers), rcpt_idxs) in routes {
             trc::event!(
                 Delivery(DeliveryEvent::DomainDeliveryStart),
                 SpanId = message.span_id,
@@ -1226,6 +1253,7 @@ impl QueuedMessage {
                                         .deliver(
                                             smtp_client,
                                             rcpt_idxs,
+                                            rcpt_headers,
                                             &mut delivery_results,
                                             params,
                                         )
@@ -1285,6 +1313,7 @@ impl QueuedMessage {
                                             .deliver(
                                                 smtp_client,
                                                 rcpt_idxs,
+                                                rcpt_headers,
                                                 &mut delivery_results,
                                                 params,
                                             )
@@ -1341,7 +1370,13 @@ impl QueuedMessage {
                             );
 
                             message
-                                .deliver(smtp_client, rcpt_idxs, &mut delivery_results, params)
+                                .deliver(
+                                    smtp_client,
+                                    rcpt_idxs,
+                                    rcpt_headers,
+                                    &mut delivery_results,
+                                    params,
+                                )
                                 .await
                         }
                     } else {
@@ -1381,7 +1416,13 @@ impl QueuedMessage {
 
                         // Deliver message
                         message
-                            .deliver(smtp_client, rcpt_idxs, &mut delivery_results, params)
+                            .deliver(
+                                smtp_client,
+                                rcpt_idxs,
+                                rcpt_headers,
+                                &mut delivery_results,
+                                params,
+                            )
                             .await
                     }
 

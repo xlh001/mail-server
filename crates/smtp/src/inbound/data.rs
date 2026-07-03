@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use super::{AuthResult, DkimSign};
+use super::AuthResult;
 use crate::{
     core::{Session, SessionAddress, State},
-    inbound::milter::Modification,
+    inbound::{dkim::DkimSign, milter::Modification},
     queue::{
         self, Message, MessageSource, MessageWrapper, QueueEnvelope, RCPT_SPAM_PAYLOAD,
-        quota::HasQueueQuota,
+        quota::HasQueueQuota, spool::QueueParams,
     },
     reporting::analysis::AnalyzeReport,
     scripts::ScriptResult,
@@ -75,6 +75,7 @@ impl<T: SessionStream> Session<T> {
         // Authenticate message
         let mut auth_message = AuthenticatedMessage::from_parsed(
             &parsed_message,
+            &raw_message,
             self.server.core.smtp.mail_auth.dkim.strict,
         );
         let has_date_header = auth_message.has_date_header();
@@ -279,7 +280,8 @@ impl<T: SessionStream> Session<T> {
                 );
 
                 self.data.messages_sent += 1;
-                return (b"250 2.0.0 Message queued for delivery.\r\n"[..]).into();
+                return (b"550 5.7.1 DSN rejected due to DKIM2 verification failure.\r\n"[..])
+                    .into();
             }
 
             let time = Instant::now();
@@ -770,49 +772,15 @@ impl<T: SessionStream> Session<T> {
             headers.extend_from_slice(b"\r\n");
         }
 
-        // DKIM sign
-        let raw_message = edited_message.as_deref().unwrap_or(raw_message.as_slice());
-        if let Some(sign_with_domain) = self
-            .server
-            .eval_if::<String, _>(&ac.dkim.sign, self, self.data.session_id)
-            .await
-        {
-            match self.server.dkim_signers(&sign_with_domain).await {
-                Ok(Some(signers)) => {
-                    for signer in &signers.dkim1 {
-                        match signer.sign_chained(&[headers.as_ref(), raw_message]) {
-                            Ok(signature) => {
-                                signature.write_header(&mut headers);
-                            }
-                            Err(err) => {
-                                trc::error!(
-                                    trc::Error::from(err)
-                                        .span_id(self.data.session_id)
-                                        .details("Failed to DKIM sign message")
-                                );
-                            }
-                        }
-                    }
-                }
-                Ok(None) => {}
-                Err(err) => {
-                    trc::error!(
-                        err.span_id(self.data.session_id)
-                            .details("Failed to retrieve DKIM signers")
-                    );
-                }
-            }
-        }
-
         // Update size
+        let original_message = raw_message.as_slice();
+        let raw_message = edited_message.as_deref().unwrap_or(raw_message.as_slice());
         message.message.size = (raw_message.len() + headers.len()) as u64;
 
         // Verify queue quota
-        if self.server.has_quota(&mut message).await {
-            // Prepare webhook event
-            let queue_id = message.queue_id;
-
+        if let Some(metadata) = self.server.has_quota(&mut message).await {
             // Queue message
+            let queue_id = message.queue_id;
             let source = if !self.is_authenticated() {
                 let dmarc_pass = dmarc_result.is_some_and(|result| result == DmarcResult::Pass);
 
@@ -834,13 +802,18 @@ impl<T: SessionStream> Session<T> {
             } else {
                 MessageSource::Authenticated
             };
+            let dkim_signers = self
+                .server
+                .eval_signers(&ac.dkim.sign, self, self.data.session_id)
+                .await;
             if message
                 .queue(
-                    Some(&headers),
-                    raw_message,
-                    self.data.session_id,
-                    &self.server,
-                    source,
+                    QueueParams::new(raw_message, self.data.session_id, &self.server, source)
+                        .with_raw_headers(&headers)
+                        .with_dkim_signers(dkim_signers)
+                        .with_original_raw_message(original_message)
+                        .with_original_authenticated_message(auth_message)
+                        .with_metadata(metadata),
                 )
                 .await
             {
@@ -880,7 +853,7 @@ impl<T: SessionStream> Session<T> {
             size: 0,
             env_id: mail_from.dsn_info.map(|i| i.into_boxed_str()),
             blob_hash: Default::default(),
-            quota_keys: Default::default(),
+            metadata: Default::default(),
             received_from_ip: self.data.remote_ip,
             received_via_port: self.data.local_port,
         };

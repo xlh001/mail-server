@@ -4,12 +4,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use common::config::smtp::auth::Dkim1Signer;
-use mail_auth::{DkimResult, DmarcResult, IprevResult, SpfResult, dkim::Signature, dmarc::Policy};
+use mail_auth::{DkimResult, DmarcResult, IprevResult, SpfResult, dmarc::Policy};
 use std::borrow::Cow;
 
 pub mod auth;
 pub mod data;
+pub mod dkim;
 pub mod ehlo;
 pub mod hooks;
 pub mod mail;
@@ -24,26 +24,6 @@ pub mod vrfy;
 pub struct FilterResponse {
     pub message: Cow<'static, str>,
     pub disconnect: bool,
-}
-
-pub trait DkimSign {
-    fn sign(&self, message: &[u8]) -> mail_auth::Result<Signature>;
-    fn sign_chained(&self, message: &[&[u8]]) -> mail_auth::Result<Signature>;
-}
-
-impl DkimSign for Dkim1Signer {
-    fn sign(&self, message: &[u8]) -> mail_auth::Result<Signature> {
-        match self {
-            Dkim1Signer::RsaSha256(signer) => signer.sign(message),
-            Dkim1Signer::Ed25519Sha256(signer) => signer.sign(message),
-        }
-    }
-    fn sign_chained(&self, message: &[&[u8]]) -> mail_auth::Result<Signature> {
-        match self {
-            Dkim1Signer::RsaSha256(signer) => signer.sign_chained(message.iter().copied()),
-            Dkim1Signer::Ed25519Sha256(signer) => signer.sign_chained(message.iter().copied()),
-        }
-    }
 }
 
 pub trait AuthResult {
