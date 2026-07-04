@@ -16,6 +16,7 @@ use common::{
             CLIENT_ID_MAX_LEN, DEVICE_CODE_LEN, SUPPORTED_SCOPES, USER_CODE_ALPHABET,
             USER_CODE_LEN,
             client_id::{decode_client_id, scopes_to_mask},
+            registration::redirect_uri_matches,
         },
     },
 };
@@ -567,27 +568,6 @@ impl OAuthApiHandler for Server {
         .into_http_response()
         .with_cors_unrestricted())
     }
-}
-
-fn redirect_uri_matches(registered: &str, presented: &str) -> bool {
-    registered == presented || loopback_redirect_matches(registered, presented)
-}
-
-fn loopback_redirect_matches(registered: &str, presented: &str) -> bool {
-    for host in ["http://127.0.0.1", "http://[::1]"] {
-        if let (Some(reg_path), Some(pres_rest)) =
-            (registered.strip_prefix(host), presented.strip_prefix(host))
-            && let Some(after_port) = pres_rest.strip_prefix(':')
-            && let Some(slash) = after_port.find('/')
-        {
-            let (port, pres_path) = after_port.split_at(slash);
-            if !port.is_empty() && port.bytes().all(|b| b.is_ascii_digit()) && pres_path == reg_path
-            {
-                return true;
-            }
-        }
-    }
-    false
 }
 
 fn grant_scope(requested: Option<&str>, registered_mask: u64) -> Option<String> {
