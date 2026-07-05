@@ -20,6 +20,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Prometheus: event counters are exported with incorrect metric names.
 - Registry: Changing the type of an existing account from `user` to `group` panics.
 - Masked emails: Return `UnknownRecipient` only for disabled or expired masked emails.
+- IDN: `sanitize_email` rejects valid Punycode domains.
 
 ## [0.16.11] - 2026-06-25
 

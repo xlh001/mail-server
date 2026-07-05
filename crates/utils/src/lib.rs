@@ -285,8 +285,14 @@ pub fn sanitize_email(email: &str) -> Option<String> {
 
     for ch in chars {
         match ch {
-            '.' | '-' | '_' => {
+            '.' => {
                 if !last_ch.is_alphanumeric() {
+                    return None;
+                }
+                result.push('.');
+            }
+            '-' | '_' => {
+                if last_ch == NIL_CHAR || last_ch == '.' {
                     return None;
                 }
                 result.push(ch);
@@ -474,6 +480,18 @@ mod tests {
         assert_eq!(
             sanitize_email("user@example.com").as_deref(),
             Some("user@example.com")
+        );
+    }
+
+    #[test]
+    fn a_label_email_domains_are_accepted_and_idempotent() {
+        assert_eq!(
+            sanitize_email("user@xn--fsqu00a.com").as_deref(),
+            Some("user@xn--fsqu00a.com")
+        );
+        assert_eq!(
+            sanitize_email("User@例子.com").as_deref(),
+            sanitize_email("user@xn--fsqu00a.com").as_deref()
         );
     }
 
