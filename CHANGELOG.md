@@ -26,6 +26,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - IDN: `sanitize_email` rejects valid Punycode domains.
 - Auto-ban: IP block expiration ignores per-reason ban durations.
 - Meilisearch: Limit the text search scope using `attributesToSearchOn`.
+- CalDAV: `calendar-query` REPORT returns invalid HTTP `404` when no events match the query.
 
 ## [0.16.11] - 2026-06-25
 
