@@ -103,12 +103,11 @@ impl Server {
                         .into(),
                     );
                 }
-                if !member_group_ids.is_empty()
-                    && ((updated_account.member_group_ids.len() != member_group_ids.len())
-                        || !updated_account
-                            .member_group_ids
-                            .iter()
-                            .all(|id| member_group_ids.contains(id)))
+                if updated_account.member_group_ids.len() != member_group_ids.len()
+                    || !updated_account
+                        .member_group_ids
+                        .iter()
+                        .all(|id| member_group_ids.contains(id))
                 {
                     updated_account.member_group_ids = member_group_ids.into();
                     has_changes = true;

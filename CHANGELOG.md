@@ -21,6 +21,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Registry: Changing the type of an existing account from `user` to `group` panics.
 - Masked emails: Return `UnknownRecipient` only for disabled or expired masked emails.
 - IDN: `sanitize_email` rejects valid Punycode domains.
+- Directory: Removing a user from all groups does not sync the changes correctly.
 
 ## [0.16.11] - 2026-06-25
 
