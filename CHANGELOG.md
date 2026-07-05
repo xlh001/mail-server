@@ -25,6 +25,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Masked emails: Return `UnknownRecipient` only for disabled or expired masked emails.
 - IDN: `sanitize_email` rejects valid Punycode domains.
 - Auto-ban: IP block expiration ignores per-reason ban durations.
+- Meilisearch: Limit the text search scope using `attributesToSearchOn`.
 
 ## [0.16.11] - 2026-06-25
 
