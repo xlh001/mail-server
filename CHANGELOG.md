@@ -27,6 +27,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Auto-ban: IP block expiration ignores per-reason ban durations.
 - Meilisearch: Limit the text search scope using `attributesToSearchOn`.
 - CalDAV: `calendar-query` REPORT returns invalid HTTP `404` when no events match the query.
+- Snowflake past id generation fails when the provided duration is longer than 4 years.
 
 ## [0.16.11] - 2026-06-25
 
