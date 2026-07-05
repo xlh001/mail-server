@@ -13,15 +13,17 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 
 ## Fixed
 - DANE: Treat DNSSEC `bogus` as a temporary failures to prevent downgrade attacks.
-- OIDC: 
+- OIDC provider: 
   - `ECDSA` private key support for `SEC1` format.
   - Allow ports in `redirect_uri` for loopback addresses.
+- OIDC directory: 
+  - Removing a user from all groups does not sync the changes correctly.
+  - Fetch `name` and `group` claims from userinfo endpoint when missing from the JWT token.
 - PostgreSQL: Include error chain in error messages.
 - Prometheus: event counters are exported with incorrect metric names.
 - Registry: Changing the type of an existing account from `user` to `group` panics.
 - Masked emails: Return `UnknownRecipient` only for disabled or expired masked emails.
 - IDN: `sanitize_email` rejects valid Punycode domains.
-- Directory: Removing a user from all groups does not sync the changes correctly.
 - Auto-ban: IP block expiration ignores per-reason ban durations.
 
 ## [0.16.11] - 2026-06-25
