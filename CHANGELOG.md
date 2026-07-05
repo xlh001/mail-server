@@ -30,6 +30,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Snowflake past id generation fails when the provided duration is longer than 4 years.
 - Calendar scheduling: Wrong RSVP base URL is used.
 - Network listener: Accept loop spins all CPU cores with no back-off when the process hits `EMFILE` (too many open files).
+- Cluster: Broadcast MTA queue refresh events to all nodes.
 
 ## [0.16.11] - 2026-06-25
 

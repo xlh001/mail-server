@@ -17,7 +17,7 @@ use crate::queue::{
 use ahash::{AHashMap, AHashSet};
 use common::config::smtp::auth::DkimSigners;
 use common::config::smtp::queue::{ArchivedQueueExpiry, QueueName};
-use common::ipc::QueueEvent;
+use common::ipc::{BroadcastEvent, QueueEvent};
 use common::network::RcptResolution;
 use common::{KV_LOCK_QUEUE_MESSAGE, Server};
 use mail_auth::AuthenticatedMessage;
@@ -600,6 +600,8 @@ impl MessageWrapper {
                 SpanId = session_id,
             );
         }
+
+        server.cluster_broadcast(BroadcastEvent::QueueRefresh).await;
 
         true
     }

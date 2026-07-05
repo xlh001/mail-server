@@ -153,6 +153,15 @@ pub fn spawn_broadcast_subscriber(inner: Arc<Inner>, mut shutdown_rx: watch::Rec
                                                         .send(QueueEvent::Paused(!is_running))
                                                         .await;
                                             }
+                                            BroadcastEvent::QueueRefresh => {
+                                                if inner.shared_core.load().network.roles.outbound_mta {
+                                                    let _ = inner
+                                                            .ipc
+                                                            .queue_tx
+                                                            .send(QueueEvent::Refresh)
+                                                            .await;
+                                                }
+                                            }
                                             BroadcastEvent::RegistryChange(change) => {
                                                 match Box::pin(inner.build_server().reload_registry(change)).await {
                                                     Ok(result) => {
@@ -255,5 +264,6 @@ fn log_event(event: &BroadcastEvent) -> trc::Value {
                 "MtaQueuePaused".into()
             }
         }
+        BroadcastEvent::QueueRefresh => "QueueRefresh".into(),
     }
 }

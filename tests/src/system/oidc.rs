@@ -256,7 +256,10 @@ pub async fn test(test: &mut TestServer) {
             },
         )
         .await;
-        assert_eq!(status, 201, "registration should return 201 for {good_uri}: {body}");
+        assert_eq!(
+            status, 201,
+            "registration should return 201 for {good_uri}: {body}"
+        );
     }
 
     // Register the client used for the flow with a private-use scheme redirect URI
