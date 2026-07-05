@@ -435,6 +435,15 @@ pub enum DmarcAlignment {
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 #[repr(u16)]
+pub enum DmarcDiscovery {
+    #[default]
+    Psl = 0,
+    Treewalk = 1,
+    Unspecified = 2,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+#[repr(u16)]
 pub enum DmarcDisposition {
     #[default]
     None = 0,
@@ -453,6 +462,7 @@ pub enum DmarcPolicyOverride {
     MailingList = 3,
     LocalPolicy = 4,
     Other = 5,
+    PolicyTestMode = 6,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]

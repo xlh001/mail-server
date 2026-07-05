@@ -4418,9 +4418,9 @@ dependencies = [
 
 [[package]]
 name = "mail-auth"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ce2a3c0ef3c8f70fc3a2ce043453605b4d5e9501f5ff2318aac92ab8d59fb78b"
+checksum = "a88908ddf3a07fa2e76873f84d28476d3c802173fee0a44f6c5e5472523e6986"
 dependencies = [
  "aws-lc-rs",
  "flate2",

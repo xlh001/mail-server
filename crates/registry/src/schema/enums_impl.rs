@@ -2355,6 +2355,59 @@ impl<'de> serde::Deserialize<'de> for DmarcAlignment {
     }
 }
 
+impl EnumImpl for DmarcDiscovery {
+    fn parse(value: &str) -> Option<Self> {
+        hashify::tiny_map! {
+            value.as_bytes(),
+            b"psl" => DmarcDiscovery::Psl,
+            b"treewalk" => DmarcDiscovery::Treewalk,
+            b"unspecified" => DmarcDiscovery::Unspecified,
+        }
+    }
+
+    fn as_str(&self) -> &'static str {
+        match self {
+            DmarcDiscovery::Psl => "psl",
+            DmarcDiscovery::Treewalk => "treewalk",
+            DmarcDiscovery::Unspecified => "unspecified",
+        }
+    }
+
+    fn to_id(&self) -> u16 {
+        *self as u16
+    }
+
+    fn from_id(id: u16) -> Option<Self> {
+        match id {
+            0 => Some(DmarcDiscovery::Psl),
+            1 => Some(DmarcDiscovery::Treewalk),
+            2 => Some(DmarcDiscovery::Unspecified),
+            _ => None,
+        }
+    }
+
+    const COUNT: usize = 3;
+}
+
+impl serde::Serialize for DmarcDiscovery {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for DmarcDiscovery {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = Cow::<str>::deserialize(deserializer)?;
+        Self::parse(&s).ok_or_else(|| serde::de::Error::unknown_variant(&s, &[]))
+    }
+}
+
 impl EnumImpl for DmarcDisposition {
     fn parse(value: &str) -> Option<Self> {
         hashify::tiny_map! {
@@ -2421,6 +2474,7 @@ impl EnumImpl for DmarcPolicyOverride {
             b"MailingList" => DmarcPolicyOverride::MailingList,
             b"LocalPolicy" => DmarcPolicyOverride::LocalPolicy,
             b"Other" => DmarcPolicyOverride::Other,
+            b"PolicyTestMode" => DmarcPolicyOverride::PolicyTestMode,
         }
     }
 
@@ -2432,6 +2486,7 @@ impl EnumImpl for DmarcPolicyOverride {
             DmarcPolicyOverride::MailingList => "MailingList",
             DmarcPolicyOverride::LocalPolicy => "LocalPolicy",
             DmarcPolicyOverride::Other => "Other",
+            DmarcPolicyOverride::PolicyTestMode => "PolicyTestMode",
         }
     }
 
@@ -2447,11 +2502,12 @@ impl EnumImpl for DmarcPolicyOverride {
             3 => Some(DmarcPolicyOverride::MailingList),
             4 => Some(DmarcPolicyOverride::LocalPolicy),
             5 => Some(DmarcPolicyOverride::Other),
+            6 => Some(DmarcPolicyOverride::PolicyTestMode),
             _ => None,
         }
     }
 
-    const COUNT: usize = 6;
+    const COUNT: usize = 7;
 }
 
 impl serde::Serialize for DmarcPolicyOverride {

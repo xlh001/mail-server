@@ -9,7 +9,6 @@ use common::{
     Server,
     config::mailstore::spamfilter::SpamFilterAction,
     ipc::{BroadcastEvent, QueueEvent, RegistryChange},
-    psl,
 };
 use jmap_proto::error::set::{SetError, SetErrorType};
 use jmap_tools::{JsonPointer, Key};
@@ -347,7 +346,6 @@ async fn classify_spam(server: &Server, mut request: SpamClassify) -> Option<Spa
             dkim2_output: Some(&dkim2_output),
             rfc5321_mail_from_domain: mail_from_domain.unwrap_or(ehlo_domain.as_str()),
             spf_output: &spf_mail_from_result,
-            domain_suffix_fn: |domain| psl::domain_str(domain).unwrap_or(domain),
         }))
         .await;
     let dmarc_pass = matches!(dmarc_output.spf_result(), DmarcResult::Pass)
@@ -550,7 +548,6 @@ async fn dmarc_troubleshoot(
             dkim2_output: Some(&dkim2_output),
             rfc5321_mail_from_domain: mail_from_domain.unwrap_or(ehlo_domain.as_str()),
             spf_output: &mail_spf_output,
-            domain_suffix_fn: |domain| psl::domain_str(domain).unwrap_or(domain),
         }))
         .await;
     let dmarc_pass = matches!(dmarc_output.spf_result(), DmarcResult::Pass)

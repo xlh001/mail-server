@@ -768,6 +768,7 @@ impl EnumImpl for Property {
             b"fromName" => Property::FromName,
             b"futureRelease" => Property::FutureRelease,
             b"generateDkimKeys" => Property::GenerateDkimKeys,
+            b"generator" => Property::Generator,
             b"geoUrls" => Property::GeoUrls,
             b"getMaxResults" => Property::GetMaxResults,
             b"greetingTimeout" => Property::GreetingTimeout,
@@ -1027,11 +1028,13 @@ impl EnumImpl for Property {
             b"policies" => Property::Policies,
             b"policyAdkim" => Property::PolicyAdkim,
             b"policyAspf" => Property::PolicyAspf,
+            b"policyDiscoveryMethod" => Property::PolicyDiscoveryMethod,
             b"policyDisposition" => Property::PolicyDisposition,
             b"policyDomain" => Property::PolicyDomain,
             b"policyFailureReportingOptions" => Property::PolicyFailureReportingOptions,
             b"policyIdentifier" => Property::PolicyIdentifier,
             b"policyIdentifiers" => Property::PolicyIdentifiers,
+            b"policyNp" => Property::PolicyNp,
             b"policyOverrideReasons" => Property::PolicyOverrideReasons,
             b"policyStrings" => Property::PolicyStrings,
             b"policySubdomainDisposition" => Property::PolicySubdomainDisposition,
@@ -1691,6 +1694,7 @@ impl EnumImpl for Property {
             Property::FromName => "fromName",
             Property::FutureRelease => "futureRelease",
             Property::GenerateDkimKeys => "generateDkimKeys",
+            Property::Generator => "generator",
             Property::GeoUrls => "geoUrls",
             Property::GetMaxResults => "getMaxResults",
             Property::GreetingTimeout => "greetingTimeout",
@@ -1950,11 +1954,13 @@ impl EnumImpl for Property {
             Property::Policies => "policies",
             Property::PolicyAdkim => "policyAdkim",
             Property::PolicyAspf => "policyAspf",
+            Property::PolicyDiscoveryMethod => "policyDiscoveryMethod",
             Property::PolicyDisposition => "policyDisposition",
             Property::PolicyDomain => "policyDomain",
             Property::PolicyFailureReportingOptions => "policyFailureReportingOptions",
             Property::PolicyIdentifier => "policyIdentifier",
             Property::PolicyIdentifiers => "policyIdentifiers",
+            Property::PolicyNp => "policyNp",
             Property::PolicyOverrideReasons => "policyOverrideReasons",
             Property::PolicyStrings => "policyStrings",
             Property::PolicySubdomainDisposition => "policySubdomainDisposition",
@@ -2618,6 +2624,7 @@ impl EnumImpl for Property {
             40 => Some(Property::FromName),
             521 => Some(Property::FutureRelease),
             124 => Some(Property::GenerateDkimKeys),
+            918 => Some(Property::Generator),
             103 => Some(Property::GeoUrls),
             436 => Some(Property::GetMaxResults),
             508 => Some(Property::GreetingTimeout),
@@ -2877,11 +2884,13 @@ impl EnumImpl for Property {
             846 => Some(Property::Policies),
             250 => Some(Property::PolicyAdkim),
             251 => Some(Property::PolicyAspf),
+            920 => Some(Property::PolicyDiscoveryMethod),
             252 => Some(Property::PolicyDisposition),
             248 => Some(Property::PolicyDomain),
             255 => Some(Property::PolicyFailureReportingOptions),
             237 => Some(Property::PolicyIdentifier),
             840 => Some(Property::PolicyIdentifiers),
+            919 => Some(Property::PolicyNp),
             262 => Some(Property::PolicyOverrideReasons),
             848 => Some(Property::PolicyStrings),
             253 => Some(Property::PolicySubdomainDisposition),
@@ -3179,7 +3188,7 @@ impl EnumImpl for Property {
         }
     }
 
-    const COUNT: usize = 918;
+    const COUNT: usize = 921;
 }
 
 impl serde::Serialize for Property {

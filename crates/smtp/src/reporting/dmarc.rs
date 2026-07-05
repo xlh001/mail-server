@@ -57,13 +57,16 @@ impl<T: SessionStream> Session<T> {
         let dmarc_record = dmarc_output.dmarc_record_cloned().unwrap();
         let config = &self.server.core.smtp.report.dmarc;
 
-        // Send failure report
-        if let (Some(failure_rate), Some(report_options)) = (
-            self.server
-                .eval_if::<Rate, _>(&config.send, self, self.data.session_id)
-                .await,
-            dmarc_output.failure_report(),
-        ) {
+        // Send failure report. RFC 9991 Section 2: report generators MUST NOT
+        // honor "ruf" for policy records published with "psd=y".
+        if !matches!(dmarc_record.psd, dmarc::Psd::Yes)
+            && let (Some(failure_rate), Some(report_options)) = (
+                self.server
+                    .eval_if::<Rate, _>(&config.send, self, self.data.session_id)
+                    .await,
+                dmarc_output.failure_report(),
+            )
+        {
             // Verify that any external reporting addresses are authorized
             let rcpts = match self
                 .server
@@ -197,12 +200,11 @@ impl<T: SessionStream> Session<T> {
                 };
 
                 auth_failure
-                    .with_identity_alignment(if dkim_failed && spf_failed {
-                        IdentityAlignment::DkimSpf
-                    } else if dkim_failed {
-                        IdentityAlignment::Dkim
-                    } else {
-                        IdentityAlignment::Spf
+                    .with_identity_alignment(match (dkim_failed, spf_failed) {
+                        (true, true) => IdentityAlignment::DkimSpf,
+                        (true, false) => IdentityAlignment::Dkim,
+                        (false, true) => IdentityAlignment::Spf,
+                        (false, false) => IdentityAlignment::None,
                     })
                     .write_rfc5322(
                         (
@@ -580,6 +582,8 @@ impl DmarcReporting for Server {
                         }
                         .into(),
                         policy_subdomain_disposition: policy.sp.into(),
+                        policy_np: policy.np.into(),
+                        policy_discovery_method: policy.discovery_method.into(),
                         policy_testing_mode: policy.testing,
                         policy_version: None,
                         version: 1.0.into(),

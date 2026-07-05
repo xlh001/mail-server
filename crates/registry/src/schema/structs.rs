@@ -1141,6 +1141,12 @@ pub struct DmarcReport {
     pub records: List<DmarcReportRecord>,
     #[serde(rename = "extensions")]
     pub extensions: List<DmarcExtension>,
+    #[serde(rename = "generator")]
+    pub generator: Option<String>,
+    #[serde(rename = "policyNp")]
+    pub policy_np: DmarcDisposition,
+    #[serde(rename = "policyDiscoveryMethod")]
+    pub policy_discovery_method: DmarcDiscovery,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -4048,7 +4048,7 @@ impl RegistryJsonPropertyPatch for BlockedIp {
 
 impl ObjectImpl for Bootstrap {
     const FLAGS: u64 = OBJ_SINGLETON;
-    const VERSION: u8 = 0;
+    const VERSION: u8 = 1;
     const OBJECT: ObjectType = ObjectType::Bootstrap;
 
     fn validate(&self, errors: &mut Vec<ValidationError>) -> bool {
@@ -8172,7 +8172,7 @@ impl RegistryJsonPropertyPatch for DmarcExtension {
 
 impl ObjectImpl for DmarcExternalReport {
     const FLAGS: u64 = OBJ_FILTER_TENANT;
-    const VERSION: u8 = 0;
+    const VERSION: u8 = 1;
     const OBJECT: ObjectType = ObjectType::DmarcExternalReport;
 
     fn validate(&self, errors: &mut Vec<ValidationError>) -> bool {
@@ -8297,7 +8297,7 @@ impl RegistryJsonPropertyPatch for DmarcExternalReport {
 
 impl ObjectImpl for DmarcInternalReport {
     const FLAGS: u64 = 0;
-    const VERSION: u8 = 0;
+    const VERSION: u8 = 1;
     const OBJECT: ObjectType = ObjectType::DmarcInternalReport;
 
     fn validate(&self, errors: &mut Vec<ValidationError>) -> bool {
@@ -8518,6 +8518,11 @@ impl DmarcReport {
         for value in value.values() {
             value.validate(errors);
         }
+        if let Some(value) = &self.generator {
+            if value.is_empty() {
+                errors.push(ValidationError::required(Property::Generator));
+            }
+        }
         errors.len() == neb
     }
 }
@@ -8542,6 +8547,9 @@ impl Pickle for DmarcReport {
         self.policy_failure_reporting_options.pickle(out);
         self.records.pickle(out);
         self.extensions.pickle(out);
+        self.generator.pickle(out);
+        self.policy_np.pickle(out);
+        self.policy_discovery_method.pickle(out);
     }
 
     fn unpickle(stream: &mut crate::pickle::PickledStream<'_>) -> Option<Self> {
@@ -8564,6 +8572,15 @@ impl Pickle for DmarcReport {
         this.policy_failure_reporting_options = Pickle::unpickle(stream)?;
         this.records = Pickle::unpickle(stream)?;
         this.extensions = Pickle::unpickle(stream)?;
+        if stream.version() >= 1 {
+            this.generator = Pickle::unpickle(stream)?;
+        }
+        if stream.version() >= 1 {
+            this.policy_np = Pickle::unpickle(stream)?;
+        }
+        if stream.version() >= 1 {
+            this.policy_discovery_method = Pickle::unpickle(stream)?;
+        }
         Some(this)
     }
 }
@@ -8589,13 +8606,16 @@ impl Default for DmarcReport {
             policy_failure_reporting_options: Default::default(),
             records: Default::default(),
             extensions: Default::default(),
+            generator: Default::default(),
+            policy_np: DmarcDisposition::Unspecified,
+            policy_discovery_method: DmarcDiscovery::Unspecified,
         }
     }
 }
 
 impl IntoValue for DmarcReport {
     fn into_value(self) -> JmapValue<'static> {
-        let mut map = jmap_tools::Map::with_capacity(20);
+        let mut map = jmap_tools::Map::with_capacity(23);
         map.insert_unchecked(Property::Version, self.version.into_value());
         map.insert_unchecked(Property::OrgName, self.org_name.into_value());
         map.insert_unchecked(Property::Email, self.email.into_value());
@@ -8629,6 +8649,12 @@ impl IntoValue for DmarcReport {
         );
         map.insert_unchecked(Property::Records, self.records.into_value());
         map.insert_unchecked(Property::Extensions, self.extensions.into_value());
+        map.insert_unchecked(Property::Generator, self.generator.into_value());
+        map.insert_unchecked(Property::PolicyNp, self.policy_np.into_value());
+        map.insert_unchecked(
+            Property::PolicyDiscoveryMethod,
+            self.policy_discovery_method.into_value(),
+        );
         JmapValue::Object(map)
     }
 }
@@ -8664,6 +8690,11 @@ impl RegistryJsonPropertyPatch for DmarcReport {
             }
             Some(Property::Records) => self.records.patch(pointer, value),
             Some(Property::Extensions) => self.extensions.patch(pointer, value),
+            Some(Property::Generator) => self.generator.patch(pointer, value),
+            Some(Property::PolicyNp) => self.policy_np.patch(pointer, value),
+            Some(Property::PolicyDiscoveryMethod) => {
+                self.policy_discovery_method.patch(pointer, value)
+            }
             Some(Property::Type) => Ok(MaybeUnpatched::Unpatched {
                 property: Property::Type,
                 value,

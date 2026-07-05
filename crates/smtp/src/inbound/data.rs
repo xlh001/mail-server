@@ -25,7 +25,6 @@ use common::{
         },
     },
     network::SessionStream,
-    psl,
     scripts::ScriptModification,
 };
 use mail_auth::{
@@ -370,9 +369,6 @@ impl<T: SessionStream> Session<T> {
                                     &self.data.helo_domain
                                 },
                                 spf_output,
-                                domain_suffix_fn: |domain| {
-                                    psl::domain_str(domain).unwrap_or(domain)
-                                },
                             },
                         ))
                         .await;
