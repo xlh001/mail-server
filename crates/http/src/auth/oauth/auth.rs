@@ -225,10 +225,30 @@ impl OAuthApiHandler for Server {
 
                 // Validate Resource Indicators (RFC 8707)
                 for resource in &resource {
-                    if !is_known_resource(&self.core.network.http.url_https, resource) {
+                    if !is_known_resource(
+                        [self.core.network.server_name.as_str()]
+                            .into_iter()
+                            .chain(
+                                self.core
+                                    .network
+                                    .info
+                                    .services
+                                    .values()
+                                    .filter_map(|v| v.hostname.as_deref()),
+                            )
+                            .chain(
+                                self.core
+                                    .network
+                                    .info
+                                    .mxs
+                                    .iter()
+                                    .filter_map(|mx| mx.hostname.as_deref()),
+                            ),
+                        resource,
+                    ) {
                         return Err(trc::AuthEvent::Error
                             .into_err()
-                            .details("Unknown resource indicator."));
+                            .details(format!("Unknown resource indicator: {}", resource)));
                     }
                 }
 
@@ -585,8 +605,38 @@ fn grant_scope(requested: Option<&str>, registered_mask: u64) -> Option<String> 
     (!granted.is_empty()).then_some(granted)
 }
 
-fn is_known_resource(base_url: &str, uri: &str) -> bool {
-    let base = base_url.trim_end_matches('/');
-    uri.strip_prefix(base)
-        .is_some_and(|rest| rest.is_empty() || rest.starts_with('/'))
+fn is_known_resource<'x>(hostnames: impl IntoIterator<Item = &'x str>, uri: &str) -> bool {
+    let Some((scheme, rest)) = uri.split_once("://") else {
+        return false;
+    };
+    let supported = hashify::tiny_map!(scheme.as_bytes(),
+        b"http" => true,
+        b"https" => true,
+        b"smtp" => true,
+        b"smtps" => true,
+        b"imap" => true,
+        b"imaps" => true,
+        b"pop3" => true,
+        b"pop3s" => true,
+        b"caldav" => true,
+        b"caldavs" => true,
+        b"webdav" => true,
+        b"webdavs" => true,
+        b"carddav" => true,
+        b"carddavs" => true,
+        b"sieve" => true,
+        b"sieves" => true
+    )
+    .unwrap_or(false);
+
+    let authority = rest.split_once('/').map_or(rest, |(auth, _)| auth);
+    let host = authority
+        .rsplit_once(':')
+        .filter(|(h, _)| h.as_bytes().iter().all(|c| c.is_ascii_digit()))
+        .map_or(authority, |(h, _)| h);
+
+    supported
+        && hostnames
+            .into_iter()
+            .any(|hostname| host.eq_ignore_ascii_case(hostname))
 }

@@ -2,12 +2,23 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.16.13] - 2026-07-XX
+
+If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If you are upgrading from v0.15.x and below, please read the [upgrading documentation](https://github.com/stalwartlabs/stalwart/blob/main/UPGRADING/v0_16.md) for more information on how to upgrade from previous versions.
+
+## Added
+
+## Changed
+
+## Fixed
+- OAuth resource indicators: Accept `imap`, `smtp`, `pop3` and `sieve` as valid resource indicators for OAuth access tokens.
+
 ## [0.16.12] - 2026-07-06
 
 If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If you are upgrading from v0.15.x and below, please read the [upgrading documentation](https://github.com/stalwartlabs/stalwart/blob/main/UPGRADING/v0_16.md) for more information on how to upgrade from previous versions.
 
 ## Added
-- DKIM2 implementation ([draft-ietf-dkim-dkim2-spec-03](https://datatracker.ietf.org/doc/draft-ietf-dkim-dkim2-spec/)).
+- DKIM2 implementation ([draft-ietf-dkim-dkim2-spec-04](https://datatracker.ietf.org/doc/draft-ietf-dkim-dkim2-spec/)).
 - DMARCbis implementation:
   - Domain-based Message Authentication, Reporting, and Conformance (DMARC) ([RFC 9989](https://datatracker.ietf.org/doc/html/rfc9989))
   - DMARC Aggregate Reporting ([RFC 9990](https://datatracker.ietf.org/doc/html/rfc9990))
