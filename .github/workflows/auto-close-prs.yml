@@ -48,18 +48,33 @@ jobs:
               return;
             }
 
-            try {
-              const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                username: author,
-              });
-              if (perm.permission === 'admin' || perm.permission === 'write') {
-                core.info(`PR #${pr.number} author '${author}' is a collaborator (${perm.permission}). Skipping.`);
-                return;
+            const actor = (context.payload.sender && context.payload.sender.login) || '';
+
+            const isCollaborator = async (username) => {
+              if (!username) {
+                return false;
               }
-            } catch (err) {
-              core.info(`Could not resolve collaborator permission for '${author}': ${err.message}`);
+              try {
+                const { data: perm } = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  username,
+                });
+                return perm.permission === 'admin' || perm.permission === 'write';
+              } catch (err) {
+                core.info(`Could not resolve collaborator permission for '${username}': ${err.message}`);
+                return false;
+              }
+            };
+
+            if (await isCollaborator(author)) {
+              core.info(`PR #${pr.number} author '${author}' is a collaborator. Skipping.`);
+              return;
+            }
+
+            if (actor.toLowerCase() !== login && await isCollaborator(actor)) {
+              core.info(`PR #${pr.number} action triggered by collaborator '${actor}'. Skipping.`);
+              return;
             }
 
             const contributingUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/blob/HEAD/CONTRIBUTING.md`;
