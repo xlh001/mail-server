@@ -145,6 +145,11 @@ All documentation is available at [stalw.art/docs](https://stalw.art/docs/instal
 If you are having problems running Stalwart, found a bug, or just have a question, please head to the [Stalwart Support Portal](https://support.stalw.art) at [support.stalw.art](https://support.stalw.art). 
 Additionally, you may purchase an [Enterprise License](https://stalw.art/enterprise) to obtain priority support from Stalwart Labs LLC, including response-time commitments and a private Priority Support area on the portal.
 
+## Contributing
+
+We welcome contributions, but to keep the project maintainable there are a few things to know before opening a pull request. Because of the high volume of low-quality, AI-generated submissions, pull requests are limited to a list of vouched contributors; to be added, post at [support.stalw.art](https://support.stalw.art) describing the change you would like to submit, together with a link to the proposed change. At this stage only bug fixes and translations are accepted, and new features are not, unless they involve just a few lines of code.
+For the full guidelines, please read [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Roadmap
 
 Stalwart has reached an exciting point in its journey, it’s now **feature complete**. All the core functionality and open standard email and collaboration protocols that we set out to support are in place. In other words, Stalwart already does everything you’d expect from a modern, standards-compliant mail and collaboration platform.
