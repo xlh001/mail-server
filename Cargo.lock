@@ -8004,6 +8004,7 @@ dependencies = [
  "trc",
  "types",
  "utils",
+ "x509-parser",
  "xxhash-rust",
 ]
 
