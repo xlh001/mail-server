@@ -408,7 +408,7 @@ impl VacationResponseSet for Server {
 
         script.push(b'\"');
         for ch in message_body {
-            if [b'\\', b'\"'].contains(&ch) {
+            if b"\\\"".contains(&ch) {
                 script.push(b'\\');
             }
             script.push(ch);
