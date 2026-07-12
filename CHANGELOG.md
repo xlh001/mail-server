@@ -14,6 +14,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Fixed
 - OAuth resource indicators: Accept `imap`, `smtp`, `pop3` and `sieve` as valid resource indicators for OAuth access tokens.
 - PostgreSQL: Incomplete channel binding implementation.
+- JMAP: Return RFC-3339-conformant UTCDate literals in capabilities: min `0001-01-01T00:00:00Z`, max `9999-12-31T23:59:59Z`.
 - Reject invalid duration values (e.g. `1h30m`).
 
 ## [0.16.12] - 2026-07-06
