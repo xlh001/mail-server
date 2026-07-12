@@ -14,6 +14,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Fixed
 - OAuth resource indicators: Accept `imap`, `smtp`, `pop3` and `sieve` as valid resource indicators for OAuth access tokens.
 - PostgreSQL: Incomplete channel binding implementation.
+- Reject invalid duration values (e.g. `1h30m`).
 
 ## [0.16.12] - 2026-07-06
 
