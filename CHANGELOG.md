@@ -16,6 +16,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - PostgreSQL: Incomplete channel binding implementation.
 - JMAP: Return RFC-3339-conformant UTCDate literals in capabilities: min `0001-01-01T00:00:00Z`, max `9999-12-31T23:59:59Z`.
 - Reject invalid duration values (e.g. `1h30m`).
+- Branding: Custom logos for domains do not work.
 
 ## [0.16.12] - 2026-07-06
 
