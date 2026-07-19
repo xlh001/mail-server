@@ -22,7 +22,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `Email/import` does not send push notifications for imported messages.
   - `CalendarEvent/set` silently ignores `ifInState`.
 - CalDAV: `calendar-query` REPORT returns empty calendar-data for JMAP-created events.
-- MTA: DMARC is skipped when MAIL FROM SPF is unavailable.
+- MTA: 
+  - DMARC is skipped when MAIL FROM SPF is unavailable.
+  - `queue_name` variable not available in rate limiter expressions.
 - Calendar: 
   - No expanded occurrences are returned for a daily recurrences crossing DST.
   - Uppercase `MAILTO` calendar addresses become invalid SMTP recipients.
