@@ -13,7 +13,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Fixed
 - IMAP: Mailbox object-quota only enforced in JMAP.
 - JMAP: Read-only sharee cannot set `isSubscribed` on a shared mailbox.
-- Calendar: Uppercase `MAILTO` calendar addresses become invalid SMTP recipients.
+- Calendar: 
+  - Uppercase `MAILTO` calendar addresses become invalid SMTP recipients.
+  - Scheduling invitations on a shared, non-owned calendar fail with `MAIL FROM unauthorized`.
 
 ## [0.16.13] - 2026-07-12
 

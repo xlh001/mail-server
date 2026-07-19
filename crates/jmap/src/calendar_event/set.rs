@@ -93,7 +93,7 @@ impl CalendarEventSet for Server {
             )
             .await?;
         let account_info = self
-            .account_info(access_token.account_id())
+            .scheduling_account_info(access_token.account_id(), account_id)
             .await
             .caused_by(trc::location!())?;
         let mut response = SetResponse::from_request(&request, self.core.jmap.set_max_objects)?;
