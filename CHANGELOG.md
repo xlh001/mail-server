@@ -15,6 +15,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - JMAP: 
   - Read-only sharee cannot set `isSubscribed` on a shared mailbox.
   - Web Push payloads with `Content-Encoding: aes128gcm` should not be base64-encoded but sent as raw bytes.
+  - `Email/import` does not send push notifications for imported messages.
 - Calendar: 
   - Uppercase `MAILTO` calendar addresses become invalid SMTP recipients.
   - Scheduling invitations on a shared, non-owned calendar fail with `MAIL FROM unauthorized`.
