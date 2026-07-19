@@ -11,7 +11,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Changed
 
 ## Fixed
-- IMAP: Mailbox object-quota only enforced in JMAP.
+- IMAP:
+  - Mailbox object-quota only enforced in JMAP.
+  - Pipelined `STORE` and `EXPUNGE` can execute out of order.
 - JMAP: 
   - Read-only sharee cannot set `isSubscribed` on a shared mailbox.
   - Web Push payloads with `Content-Encoding: aes128gcm` should not be base64-encoded but sent as raw bytes.
