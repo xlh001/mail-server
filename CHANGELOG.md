@@ -20,6 +20,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `PushSubscription/set` rejects the unpadded base64url keys the W3C Push API produces.
   - `Email/import` does not send push notifications for imported messages.
   - `CalendarEvent/set` silently ignores `ifInState`.
+- CalDAV: `calendar-query` REPORT returns empty calendar-data for JMAP-created events.
 - MTA: DMARC is skipped when MAIL FROM SPF is unavailable.
 - Calendar: 
   - Uppercase `MAILTO` calendar addresses become invalid SMTP recipients.

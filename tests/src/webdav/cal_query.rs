@@ -176,6 +176,22 @@ pub async fn test(test: &TestServer) {
         remove_dtstamp(REPORT_11_RESPONSE)
     );
 
+    // Test 12: JMAP-style event stored with an entry-less VCALENDAR wrapper
+    client
+        .request("PUT", &rfc_file_name(9), ICAL_JMAP_NO_VERSION)
+        .await
+        .with_status(StatusCode::CREATED);
+    let response = client
+        .request("REPORT", &cal_path, REPORT_12)
+        .await
+        .with_status(StatusCode::MULTI_STATUS)
+        .with_hrefs([rfc_file_name(9).as_str()])
+        .into_propfind_response(None);
+    response
+        .properties(&rfc_file_name(9))
+        .calendar_data()
+        .is_not_empty();
+
     client.delete_default_containers().await;
     test.assert_is_empty().await;
 }
@@ -735,6 +751,35 @@ const REPORT_9: &str = r#"<?xml version="1.0" encoding="utf-8" ?>
        </C:comp-filter>
      </C:filter>
    </C:calendar-query>
+"#;
+
+const REPORT_12: &str = r#"<?xml version="1.0" encoding="utf-8" ?>
+   <C:calendar-query xmlns:C="urn:ietf:params:xml:ns:caldav">
+     <D:prop xmlns:D="DAV:">
+       <D:getetag/>
+       <C:calendar-data/>
+     </D:prop>
+     <C:filter>
+       <C:comp-filter name="VCALENDAR">
+         <C:comp-filter name="VEVENT">
+           <C:prop-filter name="UID">
+             <C:text-match collation="i;octet"
+             >JMAP-NO-VERSION-EVENT@example.com</C:text-match>
+           </C:prop-filter>
+         </C:comp-filter>
+       </C:comp-filter>
+     </C:filter>
+   </C:calendar-query>
+"#;
+
+const ICAL_JMAP_NO_VERSION: &str = r#"BEGIN:VCALENDAR
+BEGIN:VEVENT
+UID:JMAP-NO-VERSION-EVENT@example.com
+SUMMARY:JMAP created event
+DTSTART:20060107T120000Z
+DTEND:20060107T130000Z
+END:VEVENT
+END:VCALENDAR
 "#;
 
 const REPORT_10: &str = r#"<?xml version="1.0" encoding="utf-8" ?>
