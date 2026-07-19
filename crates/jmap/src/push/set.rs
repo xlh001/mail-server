@@ -317,6 +317,16 @@ fn validate_push_value(
                     .and_then(|v| v.as_str())
                     .and_then(|v| URL_SAFE_INDIFFERENT.decode(v.as_ref()).ok()),
             ) {
+                if p256::PublicKey::from_sec1_bytes(&p256dh).is_err() {
+                    return Err(SetError::invalid_properties()
+                        .with_property(property.clone())
+                        .with_description("Invalid P-256 ECDH public key."));
+                }
+                if auth.len() != 16 {
+                    return Err(SetError::invalid_properties()
+                        .with_property(property.clone())
+                        .with_description("Invalid auth secret, expected 16 octets."));
+                }
                 push.keys = Some(Keys { auth, p256dh });
             } else {
                 return Err(SetError::invalid_properties()

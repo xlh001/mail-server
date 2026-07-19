@@ -17,6 +17,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - JMAP: 
   - Read-only sharee cannot set `isSubscribed` on a shared mailbox.
   - Web Push payloads with `Content-Encoding: aes128gcm` should not be base64-encoded but sent as raw bytes.
+  - Stale push subscription can block verification of a new one.
   - `PushSubscription/set` rejects the unpadded base64url keys the W3C Push API produces.
   - `Email/import` does not send push notifications for imported messages.
   - `CalendarEvent/set` silently ignores `ifInState`.
