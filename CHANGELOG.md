@@ -24,6 +24,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - CalDAV: `calendar-query` REPORT returns empty calendar-data for JMAP-created events.
 - MTA: DMARC is skipped when MAIL FROM SPF is unavailable.
 - Calendar: 
+  - No expanded occurrences are returned for a daily recurrences crossing DST.
   - Uppercase `MAILTO` calendar addresses become invalid SMTP recipients.
   - Scheduling invitations on a shared, non-owned calendar fail with `MAIL FROM unauthorized`.
 - HTTP: Disable `allowedEndpoints` expression in recovery mode.
