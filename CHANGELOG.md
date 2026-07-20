@@ -30,6 +30,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - Uppercase `MAILTO` calendar addresses become invalid SMTP recipients.
   - Scheduling invitations on a shared, non-owned calendar fail with `MAIL FROM unauthorized`.
 - HTTP: Disable `allowedEndpoints` expression in recovery mode.
+- Telemetry: Tasks are serialized to the wrong store when using separate stores for telemetry and data.
 
 ## [0.16.13] - 2026-07-12
 
