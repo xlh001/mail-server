@@ -232,6 +232,8 @@ impl JmapEmailCopy for Server {
                             CopyMessageError::NotFound => SetError::not_found()
                                 .with_description("Message not found in account."),
                             CopyMessageError::OverQuota => SetError::over_quota(),
+                            CopyMessageError::AlreadyExists(existing) => SetError::already_exists()
+                                .with_existing_id(types::id::Id::from(existing)),
                         },
                     );
                 }

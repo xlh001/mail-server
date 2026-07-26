@@ -11,6 +11,8 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Changed
 
 ## Fixed
+- JMAP:
+  - `Email/copy` should return `alreadyExists` when copying a message to a mailbox that already contains it.
 - Auth: Scoped credentials with `SysApiKeyCreate` or `SysApiKeyUpdate` permissions can regain its own account's full rights.
 
 ## [0.16.14] - 2026-07-20
