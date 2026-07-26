@@ -20,6 +20,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Web Push: Valid VAPID keys are rejected when PEM-encoded with explicit EC parameters, in SEC1 (`EC PRIVATE KEY`) format, or with a leading byte-order mark.
 - Encryption at rest: Appended messages are encrypted for accounts that did not opt in to `encryptOnAppend`.
 - Cache: Account caches silently discard entries larger than a single `quick-cache` shard, causing constant database rebuilds.
+- Registry: Id references (e.g. `#certificate-...`) fail to resolve on `defaultCertificateId`, `defaultAdminRoleIds`, `listenerIds` and `publicKey`.
 
 ## [0.16.14] - 2026-07-20
 
