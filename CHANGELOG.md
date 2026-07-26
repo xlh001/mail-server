@@ -27,6 +27,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Search: `reindex` drops calendar and contact index tasks for accounts with fewer than a full batch of items.
 - Migration: Abort `--import` when the target already contains data in the key range being imported.
 - Cluster: Broadcast subscriber re-subscribes after every message, losing bursts of cluster broadcasts during the reconnect window.
+- Enterprise: Per-tenant logo is not shown on the OAuth login password and OTP screens, which are served from the server's canonical host rather than the tenant domain.
 
 ## [0.16.14] - 2026-07-20
 
