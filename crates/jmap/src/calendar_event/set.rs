@@ -7,9 +7,9 @@
 use crate::calendar_event::{CalendarSyntheticId, assert_is_unique_uid};
 use crate::changes::state::JmapCacheState;
 use calcard::{
-    common::timezone::Tz,
+    common::{PartialDateTime, timezone::Tz},
     icalendar::{
-        ICalendarAction, ICalendarComponent, ICalendarComponentType, ICalendarDuration,
+        ICalendar, ICalendarAction, ICalendarComponent, ICalendarComponentType, ICalendarDuration,
         ICalendarEntry, ICalendarParameter, ICalendarParameterValue, ICalendarProperty,
         ICalendarRelated, ICalendarValue,
     },
@@ -217,6 +217,7 @@ impl CalendarEventSet for Server {
                 continue 'update;
             };
             new_calendar_event.data.event = ical;
+            stamp_updated(&mut new_calendar_event.data.event, now() as i64);
 
             // Validate UID
             match (
@@ -559,6 +560,7 @@ impl CalendarEventSet for Server {
                 "Failed to convert calendar event to iCalendar.",
             )));
         };
+        stamp_updated(&mut ical, now() as i64);
 
         // Generate a UID when the client omitted one
         if ical.uids().next().is_none() {
@@ -713,6 +715,24 @@ impl CalendarEventSet for Server {
         }
 
         Ok(Ok(document_id))
+    }
+}
+
+fn stamp_updated(ical: &mut ICalendar, timestamp: i64) {
+    let dtstamp = PartialDateTime::from_utc_timestamp(timestamp);
+    for component in &mut ical.components {
+        if !component.component_type.is_event_or_todo() {
+            continue;
+        }
+        if let Some(entry) = component
+            .entries
+            .iter_mut()
+            .find(|entry| entry.name == ICalendarProperty::Dtstamp)
+        {
+            entry.values = vec![ICalendarValue::PartialDateTime(Box::new(dtstamp.clone()))];
+        } else {
+            component.add_dtstamp(dtstamp.clone());
+        }
     }
 }
 

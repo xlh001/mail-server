@@ -281,7 +281,9 @@ B4yDfR2rGOd2H6Kv3fQNHPj9Nu5Tks8QYMLzrX8ONCNoFnNUQl9S0r0QS6phVqD0
         let dirty = format!("\u{feff}  \n{PKCS8_NAMED_PEM}\n  ");
         assert_eq!(
             VapidKey::from_pkcs8_pem(&dirty).unwrap().public_key(),
-            VapidKey::from_pkcs8_pem(PKCS8_NAMED_PEM).unwrap().public_key()
+            VapidKey::from_pkcs8_pem(PKCS8_NAMED_PEM)
+                .unwrap()
+                .public_key()
         );
     }
 

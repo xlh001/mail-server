@@ -14,6 +14,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - JMAP:
   - `Email/copy` should return `alreadyExists` when copying a message to a mailbox that already contains it.
   - `CalendarEvent/set` does not generate a `uid` on create when the client omits it.
+  - `CalendarEvent/set` does not refresh the `updated` property (iCalendar `DTSTAMP`) on create or update.
   - `EmailSubmission/set` rejects valid recipients whose domain is itself a public suffix (e.g. `gov.in`, `co.uk`).
 - MTA: Panic when MTA-STS is disabled and a remote MTA fetched `/.well-known/mta-sts.txt`.
 - Auth: Scoped credentials with `SysApiKeyCreate` or `SysApiKeyUpdate` permissions can regain its own account's full rights.
