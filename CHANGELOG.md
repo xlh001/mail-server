@@ -23,6 +23,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Encryption at rest: Appended messages are encrypted for accounts that did not opt in to `encryptOnAppend`.
 - Cache: Account caches silently discard entries larger than a single `quick-cache` shard, causing constant database rebuilds.
 - Registry: Id references (e.g. `#certificate-...`) fail to resolve on `defaultCertificateId`, `defaultAdminRoleIds`, `listenerIds` and `publicKey`.
+- Search: `reindex` drops calendar and contact index tasks for accounts with fewer than a full batch of items.
 
 ## [0.16.14] - 2026-07-20
 
