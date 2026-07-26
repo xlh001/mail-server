@@ -14,6 +14,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - JMAP:
   - `Email/copy` should return `alreadyExists` when copying a message to a mailbox that already contains it.
   - `CalendarEvent/set` does not generate a `uid` on create when the client omits it.
+  - `EmailSubmission/set` rejects valid recipients whose domain is itself a public suffix (e.g. `gov.in`, `co.uk`).
 - Auth: Scoped credentials with `SysApiKeyCreate` or `SysApiKeyUpdate` permissions can regain its own account's full rights.
 - Encryption at rest: Appended messages are encrypted for accounts that did not opt in to `encryptOnAppend`.
 - Cache: Account caches silently discard entries larger than a single `quick-cache` shard, causing constant database rebuilds.
