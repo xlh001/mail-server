@@ -428,6 +428,8 @@ jobs:
             mkdir -p /usr/local/etc/pkg/repos
             echo 'FreeBSD: { url: "pkg+https://pkg.freebsd.org/${ABI}/latest", mirror_type: "srv" }' > /usr/local/etc/pkg/repos/FreeBSD.conf
             pkg update -f
+            env ASSUME_ALWAYS_YES=yes pkg bootstrap -f
+            pkg update -f
             pkg install -y rust gmake llvm rocksdb
             rustc --version
           run: |
