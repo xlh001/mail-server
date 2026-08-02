@@ -11,6 +11,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - MTA: Allow System Sieve scripts to access `orcpt` during the `DATA` stage.
 
 ## Changed
+- S3: `accessKey` can now be read from an environment variable or file.
 
 ## Fixed
 - Meilisearch: Verify index existence using `GET` instead of creating a new task which times out on busy servers.
