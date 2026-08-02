@@ -17,6 +17,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Meilisearch: Verify index existence using `GET` instead of creating a new task which times out on busy servers.
 - Branding: Stalwart logo flashes before the per-tenant logo is loaded on the login page.
 - Calendar: iMIP and alarm notification messages embed the default logo using bare `LF` line endings, producing a single 4247 octet line that strict SMTP relays reject with `line too long`.
+- DMARC: Failure reports state `Identity-Alignment: none` when a mechanism authenticated successfully but against an identity that is not aligned with the `From` domain.
 
 ## [0.16.15] - 2026-07-26
 
