@@ -8,12 +8,13 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 
 ## Added
 - JMAP Email Delivery Push Notifications ([draft-ietf-jmap-emailpush-03](https://datatracker.ietf.org/doc/draft-ietf-jmap-emailpush/))
+- MTA: Allow System Sieve scripts to access `orcpt` during the `DATA` stage.
 
 ## Changed
 
 ## Fixed
 - Meilisearch: Verify index existence using `GET` instead of creating a new task which times out on busy servers.
-- Brading: Stalwart logo flashes before the per-tenant logo is loaded on the login page.
+- Branding: Stalwart logo flashes before the per-tenant logo is loaded on the login page.
 
 ## [0.16.15] - 2026-07-26
 
