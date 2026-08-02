@@ -23,6 +23,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - MTA: 
   - `BDAT` chunks sent without a valid `MAIL FROM` are answered with `552 5.3.4 Message too big for system` instead of `503 5.5.1`.
   - A `maxMessageSize` of `0` rejects every message with `552 5.3.4 Message too big for system` instead of disabling the size limit.
+- Windows: Listeners bound to the unspecified IPv6 address (`[::]`), including all defaults, refuse IPv4 connections such as `127.0.0.1`, since `IPV6_V6ONLY` is enabled by default on Windows.
 
 ## [0.16.15] - 2026-07-26
 
