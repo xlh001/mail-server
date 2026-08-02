@@ -19,6 +19,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Calendar: iMIP and alarm notification messages embed the default logo using bare `LF` line endings, producing a single 4247 octet line that strict SMTP relays reject with `line too long`.
 - DMARC: Failure reports state `Identity-Alignment: none` when a mechanism authenticated successfully but against an identity that is not aligned with the `From` domain.
 - Recovery mode: Download WebUI if missing.
+- Logging: The systemd journal tracer omits the parent span's fields.
 - MTA: 
   - `BDAT` chunks sent without a valid `MAIL FROM` are answered with `552 5.3.4 Message too big for system` instead of `503 5.5.1`.
   - A `maxMessageSize` of `0` rejects every message with `552 5.3.4 Message too big for system` instead of disabling the size limit.
