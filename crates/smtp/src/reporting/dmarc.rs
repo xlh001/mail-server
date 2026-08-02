@@ -198,7 +198,7 @@ impl<T: SessionStream> Session<T> {
                                     }
                                 })
                             })
-                            .or_else(|| self.data.spf_mail_from.as_ref())
+                            .or(self.data.spf_mail_from.as_ref())
                     } else {
                         None
                     },

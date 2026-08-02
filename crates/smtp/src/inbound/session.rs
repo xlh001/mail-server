@@ -452,7 +452,6 @@ impl<T: SessionStream> Session<T> {
                 }
                 State::SkipData(receiver, response) => {
                     if receiver.ingest(&mut iter) {
-                        let response = *response;
                         self.data.message = Vec::with_capacity(0);
                         self.write(response).await?;
                         state = State::default();
