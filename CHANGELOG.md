@@ -12,6 +12,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 
 ## Fixed
 - CardDAV: `Accept: text/vcard` version negotiation is ignored whenever another parameter such as `q` or `charset` follows `version=`.
+- Sharing: Accounts holding the `impersonate` permission never have their ACL grants collected, so shared items are never listed in JMAP sessions, CalDAV/CardDAV discovery or IMAP.
 
 ## [0.16.16] - 2026-08-02
 
