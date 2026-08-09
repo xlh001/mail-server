@@ -3665,6 +3665,7 @@ name = "imap_proto"
 version = "0.16.17"
 dependencies = [
  "ahash",
+ "base64 0.23.1",
  "chrono",
  "compact_str",
  "hashify",
