@@ -443,6 +443,30 @@ pub async fn test(test: &TestServer) {
         ),])
     );
 
+    // Confirm that the query undoStatus filter agrees with EmailSubmission/get
+    assert!(
+        client
+            .email_submission_query(
+                Filter::undo_status(UndoStatus::Pending).into(),
+                None::<Vec<_>>
+            )
+            .await
+            .unwrap()
+            .take_ids()
+            .contains(&email_submission_id)
+    );
+    assert!(
+        !client
+            .email_submission_query(
+                Filter::undo_status(UndoStatus::Final).into(),
+                None::<Vec<_>>
+            )
+            .await
+            .unwrap()
+            .take_ids()
+            .contains(&email_submission_id)
+    );
+
     // Verify onSuccessUpdateEmail action
     let mut request = client.build();
     let set_request = request.set_email_submission();

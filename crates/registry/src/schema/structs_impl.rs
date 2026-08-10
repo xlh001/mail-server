@@ -442,6 +442,7 @@ impl RegistryJsonPropertyPatch for AcmeProvider {
                 .preferred_chain
                 .patch(pointer.with_validators(&[StringValidator::Trim]), value),
             Some(Property::ReuseKey) => self.reuse_key.patch(pointer, value),
+            Some(Property::Description) => pointer.assert_server_set(),
             Some(Property::Type) => Ok(MaybeUnpatched::Unpatched {
                 property: Property::Type,
                 value,
