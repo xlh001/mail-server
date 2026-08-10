@@ -20,8 +20,7 @@ use email::{
     },
 };
 use imap_proto::{
-    Command, ResponseCode, StatusResponse, protocol::copy_move::Arguments,
-    receiver::Request,
+    Command, ResponseCode, StatusResponse, protocol::copy_move::Arguments, receiver::Request,
 };
 use registry::schema::enums::Permission;
 use std::{sync::Arc, time::Instant};

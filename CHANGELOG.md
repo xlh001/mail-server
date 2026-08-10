@@ -15,6 +15,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - MTA: 
   - Certificates for domains publishing an enforcing MTA-STS policy are always validated, even in the fallback TLS strategy.
   - DSN delivery date uses wrong timestamp.
+  - `FUTURERELEASE HOLDUNTIL` uses Unix timestamps instead of RFC 3339 date-times.
 - CardDAV: `Accept: text/vcard` version negotiation is ignored whenever another parameter such as `q` or `charset` follows `version=`.
 - Sharing: Accounts holding the `impersonate` permission never have their ACL grants collected, so shared items are never listed in JMAP sessions, CalDAV/CardDAV discovery or IMAP.
 - IMAP:

@@ -409,14 +409,16 @@ pub async fn test(test: &TestServer) {
     );
 
     // Confirm that the sendAt property is updated when using FUTURERELEASE
-    let hold_until = DateTime::parse_rfc3339("2079-11-20T05:00:00Z")
+    let hold_until_date = "2079-11-20T05:00:00Z";
+    let hold_until = DateTime::parse_rfc3339(hold_until_date)
         .unwrap()
         .to_timestamp();
     let email_submission_id = client
         .email_submission_create_envelope(
             &email_id,
             &identity_id,
-            Address::new("jdoe@example.com").parameter("HOLDUNTIL", Some(hold_until.to_string())),
+            Address::new("jdoe@example.com")
+                .parameter("HOLDUNTIL", Some(hold_until_date.to_string())),
             ["jane_smith@remote.org"],
         )
         .await
