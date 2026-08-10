@@ -9,6 +9,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Added
 
 ## Changed
+- Memory allocator: Replaced the unmaintained `jemallocator` crate with `tikv-jemallocator` (contributed by @checkraisefold).
 
 ## Fixed
 - MTA: 

@@ -3075,8 +3075,7 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 [[package]]
 name = "hickory-net"
 version = "0.26.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2295ed2f9c31e471e1428a8f88a3f0e1f4b27c15049592138d1eebe9c35b183"
+source = "git+https://github.com/hickory-dns/hickory-dns?rev=e645086f7863eaab8d961421a348b06ea613ebd3#e645086f7863eaab8d961421a348b06ea613ebd3"
 dependencies = [
  "async-trait",
  "aws-lc-rs",
@@ -3111,8 +3110,7 @@ dependencies = [
 [[package]]
 name = "hickory-proto"
 version = "0.26.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bab31817bfb44672a252e97fe81cd0c18d1b2cf892108922f6818820df8c643"
+source = "git+https://github.com/hickory-dns/hickory-dns?rev=e645086f7863eaab8d961421a348b06ea613ebd3#e645086f7863eaab8d961421a348b06ea613ebd3"
 dependencies = [
  "aws-lc-rs",
  "bitflags",
@@ -3135,8 +3133,7 @@ dependencies = [
 [[package]]
 name = "hickory-resolver"
 version = "0.26.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0d58d28879ceecde6607729660c2667a081ccdc082e082675042793960f178c"
+source = "git+https://github.com/hickory-dns/hickory-dns?rev=e645086f7863eaab8d961421a348b06ea613ebd3#e645086f7863eaab8d961421a348b06ea613ebd3"
 dependencies = [
  "cfg-if",
  "futures-util",
@@ -3830,26 +3827,6 @@ name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
-
-[[package]]
-name = "jemalloc-sys"
-version = "0.5.4+5.3.0-patched"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac6c1946e1cea1788cbfde01c993b52a10e2da07f4bac608228d1bed20bfebf2"
-dependencies = [
- "cc",
- "libc",
-]
-
-[[package]]
-name = "jemallocator"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0de374a9f8e63150e6f5e8a60cc14c668226d7a347d8aee1a45766e3c4dd3bc"
-dependencies = [
- "jemalloc-sys",
- "libc",
-]
 
 [[package]]
 name = "jieba-macros"
@@ -7910,7 +7887,6 @@ dependencies = [
  "http 0.16.17",
  "http_proto",
  "imap",
- "jemallocator",
  "jmap",
  "managesieve",
  "migration",
@@ -7922,6 +7898,7 @@ dependencies = [
  "smtp-proto",
  "spam-filter",
  "store",
+ "tikv-jemallocator",
  "tokio",
  "trc",
  "types",
@@ -8219,7 +8196,6 @@ dependencies = [
  "hyper-util",
  "imap",
  "imap_proto",
- "jemallocator",
  "jmap",
  "jmap-client",
  "jmap-tools",
@@ -8253,6 +8229,7 @@ dependencies = [
  "spam-filter",
  "store",
  "testcontainers",
+ "tikv-jemallocator",
  "time",
  "tokio",
  "tokio-rustls",
@@ -8309,6 +8286,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ad99c4c6d32803332c548b1af0540b357b3f5fc0be8f6c6bfe8b2e6ae784070"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "tikv-jemalloc-sys"
+version = "0.7.1+5.3.1-0-g81034ce1f1373e37dc865038e1bc8eeecf559ce8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a2825c78386b4ae0314074867860ba9577875de945f05992c38815cbec327f0"
+dependencies = [
+ "cc",
+ "libc",
+]
+
+[[package]]
+name = "tikv-jemallocator"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "249f09e49ab1609436f34c776e84231bead18d6a955f119f939bdc1d847561bd"
+dependencies = [
+ "libc",
+ "tikv-jemalloc-sys",
 ]
 
 [[package]]
