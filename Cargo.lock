@@ -7811,6 +7811,8 @@ dependencies = [
 [[package]]
 name = "smtp-proto"
 version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e365d0fff6ae5036364ab62f236fa669ce05acbd5878df32d3755d48cfc1491b"
 dependencies = [
  "rkyv",
  "serde",
