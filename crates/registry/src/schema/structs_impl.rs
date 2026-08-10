@@ -22426,7 +22426,7 @@ impl RegistryJsonPropertyPatch for HurricaneCredential {
 
 impl ObjectImpl for Imap {
     const FLAGS: u64 = OBJ_SINGLETON;
-    const VERSION: u8 = 0;
+    const VERSION: u8 = 1;
     const OBJECT: ObjectType = ObjectType::Imap;
 
     fn validate(&self, errors: &mut Vec<ValidationError>) -> bool {
@@ -22442,6 +22442,31 @@ impl ObjectImpl for Imap {
         }
         if let Some(value) = &self.max_request_rate {
             value.validate(errors);
+        }
+        let value = &self.max_messages_per_command;
+        if *value < 1000 {
+            errors.push(ValidationError::min_value(
+                Property::MaxMessagesPerCommand,
+                1000,
+            ));
+        }
+        let value = &self.min_uid_batch_size;
+        if *value < 1 {
+            errors.push(ValidationError::min_value(Property::MinUidBatchSize, 1));
+        }
+        if *value > 500 {
+            errors.push(ValidationError::max_value(Property::MinUidBatchSize, 500));
+        }
+        let value = &self.max_uid_batches;
+        if *value < 1 {
+            errors.push(ValidationError::min_value(Property::MaxUidBatches, 1));
+        }
+        let value = &self.max_messages_per_save;
+        if *value < 1000 {
+            errors.push(ValidationError::min_value(
+                Property::MaxMessagesPerSave,
+                1000,
+            ));
         }
         errors.len() == neb
     }
@@ -22459,6 +22484,10 @@ impl Pickle for Imap {
         self.timeout_anonymous.pickle(out);
         self.timeout_authenticated.pickle(out);
         self.timeout_idle.pickle(out);
+        self.max_messages_per_command.pickle(out);
+        self.min_uid_batch_size.pickle(out);
+        self.max_uid_batches.pickle(out);
+        self.max_messages_per_save.pickle(out);
     }
 
     fn unpickle(stream: &mut crate::pickle::PickledStream<'_>) -> Option<Self> {
@@ -22471,6 +22500,18 @@ impl Pickle for Imap {
         this.timeout_anonymous = Pickle::unpickle(stream)?;
         this.timeout_authenticated = Pickle::unpickle(stream)?;
         this.timeout_idle = Pickle::unpickle(stream)?;
+        if stream.version() >= 1 {
+            this.max_messages_per_command = Pickle::unpickle(stream)?;
+        }
+        if stream.version() >= 1 {
+            this.min_uid_batch_size = Pickle::unpickle(stream)?;
+        }
+        if stream.version() >= 1 {
+            this.max_uid_batches = Pickle::unpickle(stream)?;
+        }
+        if stream.version() >= 1 {
+            this.max_messages_per_save = Pickle::unpickle(stream)?;
+        }
         Some(this)
     }
 }
@@ -22489,13 +22530,17 @@ impl Default for Imap {
             timeout_anonymous: Duration::from_millis(60000),
             timeout_authenticated: Duration::from_millis(1800000),
             timeout_idle: Duration::from_millis(1800000),
+            max_messages_per_command: 1000000u64,
+            min_uid_batch_size: 500u64,
+            max_uid_batches: 10000u64,
+            max_messages_per_save: 1000000u64,
         }
     }
 }
 
 impl IntoValue for Imap {
     fn into_value(self) -> JmapValue<'static> {
-        let mut map = jmap_tools::Map::with_capacity(10);
+        let mut map = jmap_tools::Map::with_capacity(14);
         map.insert_unchecked(
             Property::AllowPlainTextAuth,
             self.allow_plain_text_auth.into_value(),
@@ -22516,6 +22561,19 @@ impl IntoValue for Imap {
             self.timeout_authenticated.into_value(),
         );
         map.insert_unchecked(Property::TimeoutIdle, self.timeout_idle.into_value());
+        map.insert_unchecked(
+            Property::MaxMessagesPerCommand,
+            self.max_messages_per_command.into_value(),
+        );
+        map.insert_unchecked(
+            Property::MinUidBatchSize,
+            self.min_uid_batch_size.into_value(),
+        );
+        map.insert_unchecked(Property::MaxUidBatches, self.max_uid_batches.into_value());
+        map.insert_unchecked(
+            Property::MaxMessagesPerSave,
+            self.max_messages_per_save.into_value(),
+        );
         JmapValue::Object(map)
     }
 }
@@ -22537,6 +22595,12 @@ impl RegistryJsonPropertyPatch for Imap {
                 self.timeout_authenticated.patch(pointer, value)
             }
             Some(Property::TimeoutIdle) => self.timeout_idle.patch(pointer, value),
+            Some(Property::MaxMessagesPerCommand) => {
+                self.max_messages_per_command.patch(pointer, value)
+            }
+            Some(Property::MinUidBatchSize) => self.min_uid_batch_size.patch(pointer, value),
+            Some(Property::MaxUidBatches) => self.max_uid_batches.patch(pointer, value),
+            Some(Property::MaxMessagesPerSave) => self.max_messages_per_save.patch(pointer, value),
             Some(Property::Type) => Ok(MaybeUnpatched::Unpatched {
                 property: Property::Type,
                 value,
