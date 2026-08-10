@@ -22,6 +22,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `EmailSubmission/query` filtering on `undoStatus` contradicts `EmailSubmission/get`, reporting held `FUTURERELEASE` submissions as `final` instead of `pending`.
   - `EmailSubmission/get` requests without an `ids` argument iterates the wrong index.
 - CardDAV: `Accept: text/vcard` version negotiation is ignored whenever another parameter such as `q` or `charset` follows `version=`.
+- Calendar: Server-side scheduling messages place the `text/calendar` part outside the `multipart/alternative` and disposed as an attachment.
 - Sharing: Accounts holding the `impersonate` permission never have their ACL grants collected, so shared items are never listed in JMAP sessions, CalDAV/CardDAV discovery or IMAP.
 - IMAP:
   - `COPY`/`MOVE` into a shared folder fails with `NO [ALREADYEXISTS]` when the destination account already holds the message, leaving the message in the source mailbox and clients in a retry loop.
