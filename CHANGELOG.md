@@ -8,6 +8,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 
 ## Added
 - Spam filter: `url_original` expression variable for `Url` rules.
+- WebDAV: `Range` and `If-Range` header support on file downloads ([RFC 7233](https://www.rfc-editor.org/rfc/rfc7233.html)) (#2377).
 
 ## Changed
 - Memory allocator: Replaced the unmaintained `jemallocator` crate with `tikv-jemallocator` (contributed by @checkraisefold).
