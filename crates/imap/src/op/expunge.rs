@@ -170,9 +170,9 @@ impl<T: SessionStream> SessionData<T> {
 
             if uids.len() > message_limit as usize {
                 let cutoff = uids.len() - message_limit as usize;
-                uids.select_nth_unstable(cutoff);
-                limited_uid = Some(uids[cutoff].0);
-                for (_, id) in &uids[..cutoff] {
+                let (below, lowest, _) = uids.select_nth_unstable(cutoff);
+                limited_uid = Some(lowest.0);
+                for (_, id) in below {
                     deleted_ids.remove(*id);
                 }
             }

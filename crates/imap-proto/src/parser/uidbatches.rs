@@ -42,9 +42,9 @@ impl Request<Command> {
                         "Expected a batch range in the form 'from:to'.",
                     )
                 })?;
-                let from = parse_number::<u32>(from.as_bytes())
+                let from = parse_number::<u32>(from.trim().as_bytes())
                     .map_err(|v| bad(self.tag.to_compact_string(), v))?;
-                let to = parse_number::<u32>(to.as_bytes())
+                let to = parse_number::<u32>(to.trim().as_bytes())
                     .map_err(|v| bad(self.tag.to_compact_string(), v))?;
 
                 if from == 0 || to == 0 {

@@ -97,10 +97,11 @@ impl<T: SessionStream> Session<T> {
         }
 
         trc::event!(
-            Imap(trc::ImapEvent::Search),
+            Imap(trc::ImapEvent::UidBatches),
             SpanId = self.session_id,
             AccountId = mailbox.id.account_id,
             MailboxId = mailbox.id.mailbox_id,
+            Limit = arguments.batch_size,
             Total = ranges.len(),
             Elapsed = op_start.elapsed()
         );

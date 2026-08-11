@@ -222,8 +222,7 @@ impl<T: SessionStream> SessionData<T> {
         if ids.len() > message_limit {
             let mut uids = ids.values().map(|imap_id| imap_id.uid).collect::<Vec<_>>();
             let cutoff = uids.len() - message_limit;
-            uids.select_nth_unstable(cutoff);
-            let lowest_uid = uids[cutoff];
+            let lowest_uid = *uids.select_nth_unstable(cutoff).1;
             ids.retain(|_, imap_id| imap_id.uid >= lowest_uid);
 
             let code = ResponseCode::MessageLimit {
