@@ -22936,6 +22936,13 @@ impl ObjectImpl for Jmap {
         if *value < 1 {
             errors.push(ValidationError::min_value(Property::UploadQuota, 1));
         }
+        let value = &self.upload_ttl;
+        if !value.is_valid() {
+            errors.push(ValidationError::invalid(Property::UploadTtl, value));
+        }
+        if *value < Duration::from_millis(1000) {
+            errors.push(ValidationError::min_value(Property::UploadTtl, 1000));
+        }
         let value = &self.push_max_attempts;
         if *value < 1 {
             errors.push(ValidationError::min_value(Property::PushMaxAttempts, 1));
