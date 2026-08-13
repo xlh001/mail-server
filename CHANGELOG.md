@@ -10,6 +10,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Reporting: `inboundReportMaxSize` setting, which bounds the size of a decompressed inbound DMARC or TLS report (default 25MB).
 
 ## Changed
+- JMAP: `Identity/get` keeps identities in sync with the account's e-mail addresses.
 
 ## Fixed
 - JMAP: Setting `uploadTtl` to 1ms triggers panic.
