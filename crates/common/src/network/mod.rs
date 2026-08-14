@@ -14,7 +14,12 @@ use compact_str::ToCompactString;
 use registry::{schema::enums::ExpressionVariable, types::ipmask::IpAddrOrMask};
 use rustls::ServerConfig;
 use std::fmt::Debug;
-use std::{borrow::Cow, net::IpAddr, sync::Arc, time::Instant};
+use std::{
+    borrow::Cow,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    sync::Arc,
+    time::Instant,
+};
 use tokio::{
     io::{AsyncRead, AsyncWrite},
     sync::watch,
@@ -266,6 +271,59 @@ impl Debug for TcpAcceptor {
             Self::Plain => write!(f, "Plain"),
         }
     }
+}
+
+pub fn is_global_ip(ip: &IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(ip) => is_global_ipv4(ip),
+        IpAddr::V6(ip) => is_global_ipv6(ip),
+    }
+}
+
+fn is_global_ipv4(ip: &Ipv4Addr) -> bool {
+    let [a, b, c, _] = ip.octets();
+    let is_this_network = a == 0;
+    let is_shared = a == 100 && (64..128).contains(&b);
+    let is_protocol_assignment = a == 192 && b == 0 && c == 0;
+    let is_benchmarking = a == 198 && (b & 0xfe) == 18;
+    let is_reserved = a >= 240;
+
+    !(ip.is_unspecified()
+        || ip.is_loopback()
+        || ip.is_private()
+        || ip.is_link_local()
+        || ip.is_multicast()
+        || ip.is_broadcast()
+        || ip.is_documentation()
+        || is_this_network
+        || is_shared
+        || is_protocol_assignment
+        || is_benchmarking
+        || is_reserved)
+}
+
+fn is_global_ipv6(ip: &Ipv6Addr) -> bool {
+    if ip.is_unspecified() || ip.is_loopback() || ip.is_multicast() {
+        return false;
+    }
+
+    if let Some(ip) = ip.to_ipv4() {
+        return is_global_ipv4(&ip);
+    }
+
+    let segments = ip.segments();
+
+    if segments[0] == 0x0064 && segments[1] == 0xff9b {
+        return is_global_ipv4(&Ipv4Addr::from(
+            ((segments[6] as u32) << 16) | segments[7] as u32,
+        ));
+    }
+
+    let is_unique_local = (segments[0] & 0xfe00) == 0xfc00;
+    let is_link_local = (segments[0] & 0xffc0) == 0xfe80;
+    let is_documentation = segments[0] == 0x2001 && segments[1] == 0x0db8;
+
+    !(is_unique_local || is_link_local || is_documentation)
 }
 
 pub fn ip_to_bytes(ip: &IpAddr) -> Vec<u8> {

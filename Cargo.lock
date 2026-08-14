@@ -7462,6 +7462,7 @@ dependencies = [
  "mail-parser",
  "memory-stats",
  "p256",
+ "psl",
  "registry",
  "reqwest 0.13.4",
  "rsa",
