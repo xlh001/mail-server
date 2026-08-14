@@ -23,6 +23,7 @@ pub(crate) async fn https(
     let url = url.as_ref();
 
     #[allow(unused_mut)]
+    #[allow(unused_assignments)]
     let mut allow_invalid_certs = false;
 
     #[cfg(any(feature = "dev_mode", feature = "test_mode"))]

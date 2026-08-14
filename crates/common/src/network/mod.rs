@@ -349,6 +349,30 @@ fn is_global_ipv6(ip: &Ipv6Addr) -> bool {
         || is_orchid)
 }
 
+pub fn ip_to_bytes(ip: &IpAddr) -> Vec<u8> {
+    match ip {
+        IpAddr::V4(ip) => ip.octets().to_vec(),
+        IpAddr::V6(ip) => ip.octets().to_vec(),
+    }
+}
+
+pub fn ip_to_bytes_prefix(prefix: u8, ip: &IpAddr) -> Vec<u8> {
+    match ip {
+        IpAddr::V4(ip) => {
+            let mut buf = Vec::with_capacity(5);
+            buf.push(prefix);
+            buf.extend_from_slice(&ip.octets());
+            buf
+        }
+        IpAddr::V6(ip) => {
+            let mut buf = Vec::with_capacity(17);
+            buf.push(prefix);
+            buf.extend_from_slice(&ip.octets());
+            buf
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::is_global_ip;
@@ -423,30 +447,6 @@ mod tests {
                 !is_global_ip(&ip.parse::<IpAddr>().unwrap()),
                 "expected {ip} to be rejected"
             );
-        }
-    }
-}
-
-pub fn ip_to_bytes(ip: &IpAddr) -> Vec<u8> {
-    match ip {
-        IpAddr::V4(ip) => ip.octets().to_vec(),
-        IpAddr::V6(ip) => ip.octets().to_vec(),
-    }
-}
-
-pub fn ip_to_bytes_prefix(prefix: u8, ip: &IpAddr) -> Vec<u8> {
-    match ip {
-        IpAddr::V4(ip) => {
-            let mut buf = Vec::with_capacity(5);
-            buf.push(prefix);
-            buf.extend_from_slice(&ip.octets());
-            buf
-        }
-        IpAddr::V6(ip) => {
-            let mut buf = Vec::with_capacity(17);
-            buf.push(prefix);
-            buf.extend_from_slice(&ip.octets());
-            buf
         }
     }
 }
