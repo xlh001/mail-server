@@ -20,7 +20,7 @@ use jmap_proto::{
 };
 use jmap_tools::Value;
 use reqwest::{
-    Url,
+    Client, Url,
     header::{AUTHORIZATION, CONTENT_ENCODING, CONTENT_TYPE},
     redirect::Policy,
 };
@@ -53,6 +53,7 @@ impl PushRegistration {
         server: Server,
     ) {
         let subscription = self.server.clone();
+        let push_client = self.client.clone();
         let notifications = std::mem::take(&mut self.notifications);
 
         self.in_flight = true;
@@ -86,6 +87,7 @@ impl PushRegistration {
                             alert_id: calendar_alert.alert_id.clone(),
                         };
                         if !http_request(
+                            &push_client,
                             &subscription,
                             serde_json::to_string(&payload).unwrap().into_bytes(),
                             push_timeout,
@@ -155,6 +157,7 @@ impl PushRegistration {
 
             if !changed.is_empty() {
                 failed_state_change = !http_request(
+                    &push_client,
                     &subscription,
                     serde_json::to_string(&PushObject::StateChange { changed })
                         .unwrap()
@@ -178,6 +181,7 @@ impl PushRegistration {
                 };
 
                 if !http_request(
+                    &push_client,
                     &subscription,
                     serde_json::to_string(&payload).unwrap().into_bytes(),
                     push_timeout,
@@ -235,15 +239,8 @@ impl PushRegistration {
     }
 }
 
-pub(crate) async fn http_request(
-    details: &PushSubscription,
-    mut body: Vec<u8>,
-    push_timeout: Duration,
-    vapid: Option<&Vapid>,
-    urgency: Urgency,
-) -> bool {
-    let client_builder = reqwest::Client::builder()
-        .timeout(push_timeout)
+pub(crate) fn build_push_client() -> Client {
+    utils::http::http_client_builder(cfg!(feature = "test_mode"))
         .redirect(Policy::custom(|attempt| match attempt.previous().last() {
             Some(previous) if is_same_organization(previous, attempt.url()) => {
                 if attempt.previous().len() > MAX_REDIRECTS {
@@ -253,15 +250,22 @@ pub(crate) async fn http_request(
                 }
             }
             _ => attempt.stop(),
-        }));
-
-    #[cfg(feature = "test_mode")]
-    let client_builder = client_builder.danger_accept_invalid_certs(true);
-
-    let mut client = client_builder
+        }))
         .build()
         .unwrap_or_default()
+}
+
+pub(crate) async fn http_request(
+    push_client: &Client,
+    details: &PushSubscription,
+    mut body: Vec<u8>,
+    push_timeout: Duration,
+    vapid: Option<&Vapid>,
+    urgency: Urgency,
+) -> bool {
+    let mut client = push_client
         .post(details.url.as_str())
+        .timeout(push_timeout)
         .header("TTL", "86400")
         .header("Urgency", urgency.as_str());
 
