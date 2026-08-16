@@ -8,6 +8,7 @@ use std::future::Future;
 
 use common::Server;
 use mail_parser::{HeaderName, Host};
+use smtp_proto::MAIL_SMTPUTF8;
 
 use crate::{Email, SpamFilterContext};
 
@@ -24,22 +25,24 @@ impl SpamFilterAnalyzeReceived for Server {
         let mut rcvd_from_ip = 0;
         let mut tls_count = 0;
 
+        let is_smtputf8 = (ctx.input.env_from_flags & MAIL_SMTPUTF8) != 0;
+
         for header in ctx.input.message.headers() {
             if let HeaderName::Received = &header.name {
-                if let Some(received) = header.value().as_received() {
-                    if [&received.from, &received.helo, &received.by]
-                        .into_iter()
-                        .flatten()
-                        .any(|host| matches!(host, Host::Name(name) if !name.is_ascii()))
-                        || received
-                            .from_iprev
-                            .as_ref()
-                            .is_some_and(|ptr| !ptr.is_ascii())
-                    {
-                        // Received headers have non-ASCII characters
-                        ctx.result.add_tag("RCVD_ILLEGAL_CHARS");
-                    }
+                if !is_smtputf8
+                    && !ctx
+                        .input
+                        .message
+                        .raw_message()
+                        .get(header.offset_start as usize..header.offset_end as usize)
+                        .unwrap_or_default()
+                        .is_ascii()
+                {
+                    // Received headers have non-ASCII characters
+                    ctx.result.add_tag("RCVD_ILLEGAL_CHARS");
+                }
 
+                if let Some(received) = header.value().as_received() {
                     let helo_domain = received.from().or_else(|| received.helo());
                     let ip_rev = received.from_iprev();
 

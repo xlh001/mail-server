@@ -944,6 +944,59 @@ END:VCALENDAR
         .properties(&href_in_calendar2)
         .with_status(StatusCode::NOT_FOUND);
 
+    // Unbounded yearly recurrences remain queryable far beyond their first instance
+    let yearly_event_id = account
+        .jmap_create(
+            MethodObject::CalendarEvent,
+            [json!({
+                "@type": "Event",
+                "uid": "yearly-unbounded@example.com",
+                "title": "Unbounded yearly event",
+                "start": "2018-06-01T09:00:00",
+                "duration": "PT1H",
+                "timeZone": "Etc/UTC",
+                "calendarIds": {
+                    &calendar1_id: true
+                },
+                "recurrenceRule": {
+                    "@type": "RecurrenceRule",
+                    "frequency": "yearly"
+                }
+            })],
+            Vec::<(&str, &str)>::new(),
+        )
+        .await
+        .created(0)
+        .id()
+        .to_string();
+    test.wait_for_tasks().await;
+
+    assert!(
+        account
+            .jmap_query(
+                MethodObject::CalendarEvent,
+                [
+                    ("after", "2027-06-01T00:00:00"),
+                    ("before", "2027-07-01T00:00:00"),
+                ],
+                ["start"],
+                [("timeZone", "Etc/UTC")],
+            )
+            .await
+            .ids()
+            .any(|id| id == yearly_event_id),
+        "unbounded yearly event was pruned from a June 2027 query"
+    );
+
+    account
+        .jmap_destroy(
+            MethodObject::CalendarEvent,
+            [yearly_event_id.as_str()],
+            Vec::<(&str, &str)>::new(),
+        )
+        .await
+        .assert_destroyed(&[Id::from_str(&yearly_event_id).unwrap()]);
+
     // Clean up
     test.wait_for_tasks().await;
     account.destroy_all_calendars().await;

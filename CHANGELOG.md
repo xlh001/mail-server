@@ -26,6 +26,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `CalendarEventNotification/changes` and `FileNode/changes` reject with `cannotCalculateChanges` the state that `/get` returned for an account with no change history.
   - `CalendarEvent/set` and `ContactCard/set` do not write a vanished tombstone for the previous CalDAV/CardDAV href when `calendarIds` or `addressBookIds` moves an item between collections.
 - CalDAV: Attendee addresses that percent-encode a display name into the `mailto:` URI are queued verbatim.
+- Calendar: Recurring events disappear from CalDAV time-range `REPORT`s and JMAP `CalendarEvent/query` results a few years after their first occurrence.
 - WebDAV:
   - When a file node references a parent folder that no longer exists, any request on a file collection panics.
   - `MOVE` on a folder honors a `Depth` header of `0` or `1` instead of always moving the whole subtree.
