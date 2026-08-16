@@ -32,6 +32,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - MTA: 
   - DSN bounces are emitted with a malformed `Message-ID` wrapped in doubled angle brackets.
   - Delivery to any MX host whose name is an IDN A-label fails permanently.
+  - Queue strategy and quota expressions that branch on `source` never match at enqueue.
   - MTA-STS:
     - Policies in `testing` mode are enforced, turning any TLS error into a permanent failure.
     - `mx` patterns published as U-labels never authorize the MX host they name.
