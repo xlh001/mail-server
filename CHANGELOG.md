@@ -19,6 +19,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 
 ## Fixed
 - Directory: Local group membership is cleared when the external directory is configured with a group claim or attribute that it does not return.
+- MTA: DSN bounces are emitted with a malformed `Message-ID` wrapped in doubled angle brackets.
 - JMAP: Setting `uploadTtl` to 1ms triggers panic.
 - WebPush: Validate push URL and use `application/octet-stream` as `Content-Type` for encrypted payloads.
 - RocksDB: `bufferSize` setting was applied to the unused default column family and had no effect.

@@ -336,7 +336,7 @@ impl MessageWrapper {
                 HeaderType::Text(self.message.return_path.as_ref().into()),
             )
             .header("Auto-Submitted", HeaderType::Text("auto-generated".into()))
-            .message_id(format!("<{}@{}>", make_boundary("."), reporting_mta))
+            .message_id(format!("{}@{}", make_boundary("."), reporting_mta))
             .subject(subject)
             .body(MimePart::new(
                 ContentType::new("multipart/report").attribute("report-type", "delivery-status"),
