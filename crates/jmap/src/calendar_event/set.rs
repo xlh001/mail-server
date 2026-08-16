@@ -437,6 +437,12 @@ impl CalendarEventSet for Server {
             }
 
             // Update record
+            let vanished_paths = new_calendar_event
+                .removed_calendar_ids(calendar_event.inner)
+                .filter_map(|calendar_id| {
+                    cache.format_resource_path_by_parent(document_id, calendar_id)
+                })
+                .collect::<Vec<_>>();
             new_calendar_event
                 .update(
                     access_token.account_tenant_ids(),
@@ -446,6 +452,9 @@ impl CalendarEventSet for Server {
                     &mut batch,
                 )
                 .caused_by(trc::location!())?;
+            for path in vanished_paths {
+                batch.log_vanished_item(VanishedCollection::Calendar, path);
+            }
             if prev_email_alarm != next_email_alarm {
                 if let Some(prev_alarm) = prev_email_alarm {
                     prev_alarm.delete_task(&mut batch);

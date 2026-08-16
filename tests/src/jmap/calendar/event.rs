@@ -10,10 +10,12 @@ use crate::utils::{
 };
 use ahash::AHashSet;
 use calcard::jscalendar::JSCalendarProperty;
-use groupware::cache::GroupwareCache;
+use dav_proto::Depth;
+use groupware::{DavResourceName, cache::GroupwareCache};
 use hyper::StatusCode;
 use jmap_proto::request::method::MethodObject;
 use serde_json::{Value, json};
+use std::str::FromStr;
 use types::{collection::SyncCollection, id::Id};
 
 pub async fn test(test: &TestServer) {
@@ -836,6 +838,111 @@ END:VCALENDAR
             "id": &no_participants_event_id,
             "organizerCalendarAddress": "mailto:jdoe@example.com"
         }));
+
+    // Moving an event between calendars tombstones the previous CalDAV href
+    test.wait_for_tasks().await;
+    let cal_base_path = format!("{}/jdoe%40example.com/", DavResourceName::Cal.base_path());
+    let sync_token = dav_client
+        .sync_collection(&cal_base_path, "", Depth::Infinity, None, ["D:getetag"])
+        .await
+        .sync_token()
+        .to_string();
+    let moved_event_id = account
+        .jmap_create(
+            MethodObject::CalendarEvent,
+            [json!({
+                "@type": "Event",
+                "uid": "d3a15a44-fe25-4b6a-9e2f-58d40f0f1d4c",
+                "title": "Moving Event",
+                "start": "2026-01-15T13:00:00",
+                "timeZone": "America/New_York",
+                "duration": "PT1H",
+                "calendarIds": {
+                    &calendar1_id: true
+                },
+            })],
+            Vec::<(&str, &str)>::new(),
+        )
+        .await
+        .created(0)
+        .id()
+        .to_string();
+    let response = dav_client
+        .sync_collection(
+            &cal_base_path,
+            &sync_token,
+            Depth::Infinity,
+            None,
+            ["D:getetag"],
+        )
+        .await
+        .with_href_count(1);
+    let sync_token = response.sync_token().to_string();
+    let href_in_calendar1 = response.hrefs()[0].to_string();
+
+    account
+        .jmap_update(
+            MethodObject::CalendarEvent,
+            [(
+                &moved_event_id,
+                json!({
+                    "calendarIds": {
+                        &calendar2_id: true
+                    }
+                }),
+            )],
+            Vec::<(&str, &str)>::new(),
+        )
+        .await
+        .updated(&moved_event_id);
+
+    let response = dav_client
+        .sync_collection(
+            &cal_base_path,
+            &sync_token,
+            Depth::Infinity,
+            None,
+            ["D:getetag"],
+        )
+        .await
+        .with_href_count(2);
+    let sync_token = response.sync_token().to_string();
+    let href_in_calendar2 = response
+        .hrefs()
+        .into_iter()
+        .find(|href| *href != href_in_calendar1)
+        .unwrap()
+        .to_string();
+    let response = response.into_propfind_response(None);
+    response
+        .properties(&href_in_calendar1)
+        .with_status(StatusCode::NOT_FOUND);
+    response
+        .properties(&href_in_calendar2)
+        .with_status(StatusCode::OK);
+
+    account
+        .jmap_destroy(
+            MethodObject::CalendarEvent,
+            [moved_event_id.as_str()],
+            Vec::<(&str, &str)>::new(),
+        )
+        .await
+        .assert_destroyed(&[Id::from_str(&moved_event_id).unwrap()]);
+
+    dav_client
+        .sync_collection(
+            &cal_base_path,
+            &sync_token,
+            Depth::Infinity,
+            None,
+            ["D:getetag"],
+        )
+        .await
+        .with_href_count(1)
+        .into_propfind_response(None)
+        .properties(&href_in_calendar2)
+        .with_status(StatusCode::NOT_FOUND);
 
     // Clean up
     test.wait_for_tasks().await;

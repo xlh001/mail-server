@@ -19,16 +19,16 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - Range iteration uses bounded iterators and no longer reads values when only keys were requested.
 
 ## Fixed
-- Directory: Local group membership is cleared when the external directory is configured with a group claim or attribute that it does not return.
 - JMAP:
   - Setting `uploadTtl` to 1ms triggers panic.
   - `CalendarEvent/set` does not assign `organizerCalendarAddress` nor send scheduling messages when an event is created with participants.
   - `CalendarEvent/get` omits `isOrigin` when it is listed explicitly in `properties`.
   - `CalendarEventNotification/changes` and `FileNode/changes` reject with `cannotCalculateChanges` the state that `/get` returned for an account with no change history.
-- WebPush: Validate push URL and use `application/octet-stream` as `Content-Type` for encrypted payloads.
-- RocksDB: `bufferSize` setting was applied to the unused default column family and had no effect.
-- Sieve: `include` statements fail to find system and user global scripts whose name contains uppercase characters.
+  - `CalendarEvent/set` and `ContactCard/set` do not write a vanished tombstone for the previous CalDAV/CardDAV href when `calendarIds` or `addressBookIds` moves an item between collections.
 - CalDAV: Attendee addresses that percent-encode a display name into the `mailto:` URI are queued verbatim.
+- WebDAV:
+  - When a file node references a parent folder that no longer exists, any request on a file collection panics.
+  - `MOVE` on a folder honors a `Depth` header of `0` or `1` instead of always moving the whole subtree.
 - MTA: 
   - DSN bounces are emitted with a malformed `Message-ID` wrapped in doubled angle brackets.
   - Delivery to any MX host whose name is an IDN A-label fails permanently.
@@ -41,6 +41,10 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Spam filter:
   - Some rules misfire on internationalized addresses when the envelope and the headers spell the same domain in different label forms.
   - Punycode labels that do not re-encode to the label they came from are no longer decoded.
+- WebPush: Validate push URL and use `application/octet-stream` as `Content-Type` for encrypted payloads.
+- Directory: Local group membership is cleared when the external directory is configured with a group claim or attribute that it does not return.
+- RocksDB: `bufferSize` setting was applied to the unused default column family and had no effect.
+- Sieve: `include` statements fail to find system and user global scripts whose name contains uppercase characters.
 
 ## [0.16.17] - 2026-08-10
 
