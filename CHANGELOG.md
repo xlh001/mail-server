@@ -11,6 +11,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - RocksDB: `cacheSize` setting, which bounds the total memory shared by the block caches of every column family (default 128MB).
 
 ## Changed
+- ASN & GeoIP: Default data source URLs now point at the ip-location-db GitHub releases, as the previously used npm packages are no longer updated. Existing installations keep their configured URLs and should update them following the [ASN and GeoIP documentation](https://stalw.art/docs/server/asn).
 - JMAP: `Identity/get` keeps identities in sync with the account's e-mail addresses.
 - MTA: Queue scheduler no longer rescans the queue from the earliest pending event and coalesces bursts of delivery completions into a single scan.
 - RocksDB: 
