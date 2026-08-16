@@ -189,7 +189,7 @@ impl LdapDirectory {
                 Some(groups)
             };
         } else {
-            result.account.groups = Some(Vec::new());
+            result.account.groups = (!self.mappings.attr_groups.is_empty()).then(Vec::new);
         }
 
         Ok(())
