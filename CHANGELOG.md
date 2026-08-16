@@ -24,6 +24,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - WebPush: Validate push URL and use `application/octet-stream` as `Content-Type` for encrypted payloads.
 - RocksDB: `bufferSize` setting was applied to the unused default column family and had no effect.
 - Sieve: `include` statements fail to find system and user global scripts whose name contains uppercase characters.
+- CalDAV: Attendee addresses that percent-encode a display name into the `mailto:` URI are queued verbatim.
 - MTA: 
   - DSN bounces are emitted with a malformed `Message-ID` wrapped in doubled angle brackets.
   - Delivery to any MX host whose name is an IDN A-label fails permanently.
