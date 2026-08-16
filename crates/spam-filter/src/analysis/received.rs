@@ -9,7 +9,7 @@ use std::future::Future;
 use common::Server;
 use mail_parser::{HeaderName, Host};
 
-use crate::SpamFilterContext;
+use crate::{Email, SpamFilterContext};
 
 pub trait SpamFilterAnalyzeReceived: Sync + Send {
     fn spam_filter_analyze_received(
@@ -26,19 +26,20 @@ impl SpamFilterAnalyzeReceived for Server {
 
         for header in ctx.input.message.headers() {
             if let HeaderName::Received = &header.name {
-                if !ctx
-                    .input
-                    .message
-                    .raw_message()
-                    .get(header.offset_start as usize..header.offset_end as usize)
-                    .unwrap_or_default()
-                    .is_ascii()
-                {
-                    // Received headers have non-ASCII characters
-                    ctx.result.add_tag("RCVD_ILLEGAL_CHARS");
-                }
-
                 if let Some(received) = header.value().as_received() {
+                    if [&received.from, &received.helo, &received.by]
+                        .into_iter()
+                        .flatten()
+                        .any(|host| matches!(host, Host::Name(name) if !name.is_ascii()))
+                        || received
+                            .from_iprev
+                            .as_ref()
+                            .is_some_and(|ptr| !ptr.is_ascii())
+                    {
+                        // Received headers have non-ASCII characters
+                        ctx.result.add_tag("RCVD_ILLEGAL_CHARS");
+                    }
+
                     let helo_domain = received.from().or_else(|| received.helo());
                     let ip_rev = received.from_iprev();
 
@@ -54,11 +55,11 @@ impl SpamFilterAnalyzeReceived for Server {
                         ctx.result.add_tag("FORGED_RCVD_TRAIL");
                     }
 
-                    if let Some(delivered_for) = received.for_().map(|s| s.to_lowercase())
+                    if let Some(delivered_for) = received.for_().map(Email::new)
                         && ctx
                             .output
                             .all_recipients()
-                            .any(|r| r.email.address == delivered_for)
+                            .any(|r| r.email == delivered_for)
                     {
                         // Recipient appears on Received trail
                         ctx.result.add_tag("PREVIOUSLY_DELIVERED");

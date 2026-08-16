@@ -64,3 +64,19 @@ To: user@domain.com
 Received: invalid
 
 test
+<!-- NEXT TEST -->
+expect RCVD_ILLEGAL_CHARS FORGED_RCVD_TRAIL RCVD_COUNT_ONE RCVD_NO_TLS_LAST
+
+Received: from BAY0-HMR08.bay0.hotmail.com (bay0-hmr08.bay0.hótmail.com [65.54.241.207]) 
+          by dogma.slashnull.org (8.11.6/8.11.6) 
+          with ESMTP id h2DBpvs24047 for <webmaster@efi.ie>; Thu, 13 Mar 2003 11:51:57 GMT
+
+test
+<!-- NEXT TEST -->
+expect RCVD_COUNT_ONE RCVD_NO_TLS_LAST
+
+Received: from mail-pl1-f179.google.com (mail-pl1-f179.google.com [209.85.214.179]) 
+          by mail.xn--eebajf.xn--9dbq2a (Postfix) 
+          with ESMTP id h2DBpvs24047 for <יוסי@מייל.קום>; Thu, 13 Mar 2003 11:51:57 GMT
+
+test

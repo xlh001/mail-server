@@ -19,11 +19,22 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 
 ## Fixed
 - Directory: Local group membership is cleared when the external directory is configured with a group claim or attribute that it does not return.
-- MTA: DSN bounces are emitted with a malformed `Message-ID` wrapped in doubled angle brackets.
 - JMAP: Setting `uploadTtl` to 1ms triggers panic.
 - WebPush: Validate push URL and use `application/octet-stream` as `Content-Type` for encrypted payloads.
 - RocksDB: `bufferSize` setting was applied to the unused default column family and had no effect.
 - Sieve: `include` statements fail to find system and user global scripts whose name contains uppercase characters.
+- MTA: 
+  - DSN bounces are emitted with a malformed `Message-ID` wrapped in doubled angle brackets.
+  - Delivery to any MX host whose name is an IDN A-label fails permanently.
+  - MTA-STS:
+    - Policies in `testing` mode are enforced, turning any TLS error into a permanent failure.
+    - `mx` patterns published as U-labels never authorize the MX host they name.
+  - DMARC:
+    - Alignment compares identifiers in their A-label form.
+    - External reporting addresses published as U-labels are rejected as unauthorized.
+- Spam filter:
+  - Some rules misfire on internationalized addresses when the envelope and the headers spell the same domain in different label forms.
+  - Punycode labels that do not re-encode to the label they came from are no longer decoded.
 
 ## [0.16.17] - 2026-08-10
 
