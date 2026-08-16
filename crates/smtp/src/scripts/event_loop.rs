@@ -79,8 +79,7 @@ impl RunScript for Server {
             match result {
                 Ok(event) => match event {
                     Event::IncludeScript { name, optional } => {
-                        let name_ = name.as_str().to_lowercase();
-                        if let Some(script) = self.core.sieve.trusted_scripts.get(&name_) {
+                        if let Some(script) = self.core.sieve.trusted_script(name.as_str()) {
                             input = Input::script(name, script.clone());
                         } else if optional {
                             input = false.into();
@@ -89,7 +88,7 @@ impl RunScript for Server {
                                 Sieve(SieveEvent::ScriptNotFound),
                                 Id = script_id.clone(),
                                 SpanId = session_id,
-                                Details = name_,
+                                Details = name.as_str().to_string(),
                             );
                             break;
                         }
