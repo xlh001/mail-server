@@ -42,7 +42,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - Some rules misfire on internationalized addresses when the envelope and the headers spell the same domain in different label forms.
   - Punycode labels that do not re-encode to the label they came from are no longer decoded.
 - WebPush: Validate push URL and use `application/octet-stream` as `Content-Type` for encrypted payloads.
-- Directory: Local group membership is cleared when the external directory is configured with a group claim or attribute that it does not return.
+- Directory:
+  - Local group membership is cleared when the external directory is configured with a group claim or attribute that it does not return.
+  - LDAP: Directories that store aliases as additional values of the primary address attribute provision no aliases.
 - RocksDB: `bufferSize` setting was applied to the unused default column family and had no effect.
 - Sieve: `include` statements fail to find system and user global scripts whose name contains uppercase characters.
 
