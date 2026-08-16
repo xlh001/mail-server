@@ -727,10 +727,158 @@ END:VCALENDAR
         .collect::<AHashSet<_>>();
     assert_eq!(ical, expected_ical);
 
+    // Organizer assignment tests
+    let response = account
+        .jmap_create(
+            MethodObject::CalendarEvent,
+            [
+                test_jscalendar_participants("organizer-auto@example.com", None).with_property(
+                    JSCalendarProperty::<Id>::CalendarIds,
+                    [calendar1_id.as_str()].into_jmap_set(),
+                ),
+                test_jscalendar_participants(
+                    "organizer-explicit@example.com",
+                    Some("mailto:cyrus@example.com"),
+                )
+                .with_property(
+                    JSCalendarProperty::<Id>::CalendarIds,
+                    [calendar1_id.as_str()].into_jmap_set(),
+                ),
+                test_jscalendar_4()
+                    .with_property(JSCalendarProperty::<Id>::Uid, "organizer-none@example.com")
+                    .with_property(
+                        JSCalendarProperty::<Id>::CalendarIds,
+                        [calendar1_id.as_str()].into_jmap_set(),
+                    ),
+            ],
+            Vec::<(&str, &str)>::new(),
+        )
+        .await;
+    let auto_event_id = response.created(0).id().to_string();
+    let explicit_event_id = response.created(1).id().to_string();
+    let no_participants_event_id = response.created(2).id().to_string();
+
+    let response = account
+        .jmap_get(
+            MethodObject::CalendarEvent,
+            [
+                JSCalendarProperty::<Id>::Id,
+                JSCalendarProperty::OrganizerCalendarAddress,
+            ],
+            [
+                &auto_event_id,
+                &explicit_event_id,
+                &no_participants_event_id,
+            ],
+        )
+        .await;
+
+    // The server assigns an organizer when participants are present but none was supplied
+    response.list()[0].assert_is_equal(json!({
+        "id": &auto_event_id,
+        "organizerCalendarAddress": "mailto:jdoe@example.com"
+    }));
+
+    // An organizer supplied by the client is never overwritten
+    response.list()[1].assert_is_equal(json!({
+        "id": &explicit_event_id,
+        "organizerCalendarAddress": "mailto:cyrus@example.com"
+    }));
+
+    // An event without participants is left without an organizer
+    response.list()[2].assert_is_equal(json!({
+        "id": &no_participants_event_id
+    }));
+
+    // Adding participants to an event that had none assigns the organizer
+    account
+        .jmap_update(
+            MethodObject::CalendarEvent,
+            [(
+                &no_participants_event_id,
+                json!({
+                    "participants": {
+                        "8584f8f9-5414-55e3-8a1c-ad6fc2f3ffb6": {
+                            "calendarAddress": "mailto:jdoe@example.com",
+                            "participationStatus": "accepted",
+                            "roles": {
+                                "chair": true,
+                                "owner": true
+                            },
+                            "@type": "Participant"
+                        },
+                        "a0171748-fe8d-57d8-879e-56036a5251d1": {
+                            "calendarAddress": "mailto:rupert@example.com",
+                            "participationStatus": "needs-action",
+                            "kind": "individual",
+                            "@type": "Participant"
+                        }
+                    }
+                }),
+            )],
+            Vec::<(&str, &str)>::new(),
+        )
+        .await
+        .updated(&no_participants_event_id);
+
+    account
+        .jmap_get(
+            MethodObject::CalendarEvent,
+            [
+                JSCalendarProperty::<Id>::Id,
+                JSCalendarProperty::OrganizerCalendarAddress,
+            ],
+            [&no_participants_event_id],
+        )
+        .await
+        .list()[0]
+        .assert_is_equal(json!({
+            "id": &no_participants_event_id,
+            "organizerCalendarAddress": "mailto:jdoe@example.com"
+        }));
+
     // Clean up
     test.wait_for_tasks().await;
     account.destroy_all_calendars().await;
     test.assert_is_empty().await;
+}
+
+fn test_jscalendar_participants(uid: &str, organizer: Option<&str>) -> Value {
+    let mut event = json!({
+      "@type": "Event",
+      "uid": uid,
+      "title": "Organizer assignment",
+      "start": "2006-01-04T10:00:00",
+      "duration": "PT1H",
+      "timeZone": "US/Eastern",
+      "updated": "2006-02-06T00:11:02Z",
+      "participants": {
+        "8584f8f9-5414-55e3-8a1c-ad6fc2f3ffb6": {
+          "calendarAddress": "mailto:jdoe@example.com",
+          "participationStatus": "accepted",
+          "roles": {
+            "chair": true,
+            "owner": true
+          },
+          "@type": "Participant"
+        },
+        "a0171748-fe8d-57d8-879e-56036a5251d1": {
+          "calendarAddress": "mailto:rupert@example.com",
+          "participationStatus": "needs-action",
+          "kind": "individual",
+          "@type": "Participant"
+        }
+      }
+    });
+
+    if let Some(organizer) = organizer {
+        event.as_object_mut().unwrap().insert(
+            "organizerCalendarAddress".to_string(),
+            Value::String(organizer.to_string()),
+        );
+    }
+
+    event
 }
 
 fn assert_eq_ignoring_updated(got: &Value, expected: Value) {

@@ -89,7 +89,12 @@ async fn asn() {
         ("8.8.8.8", 15169, "Google LLC", "US"),
         ("1.1.1.1", 13335, "Cloudflare, Inc.", "AU"),
         ("2a01:4f9:c011:b43c::1", 24940, "Hetzner Online GmbH", "FI"),
-        ("1.33.1.1", 2514, "InfoSphere - NTT PC Communications, Inc.", "JP"),
+        (
+            "1.33.1.1",
+            2514,
+            "InfoSphere - NTT PC Communications, Inc.",
+            "JP",
+        ),
     ] {
         let result = test.server.lookup_asn_country(ip.parse().unwrap()).await;
         println!("{ip}: {result:?}");

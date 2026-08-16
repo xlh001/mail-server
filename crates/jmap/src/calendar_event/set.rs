@@ -28,7 +28,12 @@ use groupware::{
         CalendarEventData, EVENT_DRAFT, EVENT_HIDE_ATTENDEES, EVENT_INVITE_OTHERS,
         EVENT_INVITE_SELF,
     },
-    scheduling::{ItipMessages, event_create::itip_create, event_update::itip_update},
+    scheduling::{
+        ItipMessages,
+        event_create::itip_create,
+        event_update::itip_update,
+        itip::{itip_assign_organizer, itip_unreachable_recipient},
+    },
 };
 use http_proto::HttpSessionData;
 use jmap_proto::{
@@ -219,6 +224,11 @@ impl CalendarEventSet for Server {
             new_calendar_event.data.event = ical;
             stamp_updated(&mut new_calendar_event.data.event, now() as i64);
 
+            // Assign an organizer when participants were added to an event that had none
+            if let Some(organizer_address) = account_info.addresses().first() {
+                itip_assign_organizer(&mut new_calendar_event.data.event, organizer_address);
+            }
+
             // Validate UID
             match (
                 new_calendar_event.data.event.uids().next(),
@@ -331,6 +341,17 @@ impl CalendarEventSet for Server {
                 && access_token.has_permission(Permission::CalendarSchedulingSend)
                 && new_calendar_event.data.event_range_end() > now
             {
+                if let Some(calendar_address) = itip_unreachable_recipient(
+                    &new_calendar_event.data.event,
+                    account_info.addresses(),
+                ) {
+                    response.not_updated.append(
+                        id,
+                        SetError::no_supported_schedule_methods(calendar_address),
+                    );
+                    continue 'update;
+                }
+
                 let result = if new_calendar_event.schedule_tag.is_some() {
                     let old_ical = rkyv_deserialize(&calendar_event.inner.data.event)
                         .caused_by(trc::location!())?;
@@ -622,6 +643,11 @@ impl CalendarEventSet for Server {
             }
         }
 
+        // Assign an organizer when the event has participants but none was provided
+        if let Some(organizer_address) = account_info.addresses().first() {
+            itip_assign_organizer(&mut ical, organizer_address);
+        }
+
         // Validate UID
         if let Err(err) = assert_is_unique_uid(self, account_id, ical.uids().next()).await? {
             return Ok(Err(err));
@@ -656,6 +682,14 @@ impl CalendarEventSet for Server {
             && access_token.has_permission(Permission::CalendarSchedulingSend)
             && event.data.event_range_end() > now() as i64
         {
+            if let Some(calendar_address) =
+                itip_unreachable_recipient(&event.data.event, account_info.addresses())
+            {
+                return Ok(Err(SetError::no_supported_schedule_methods(
+                    calendar_address,
+                )));
+            }
+
             match itip_create(&mut event.data.event, account_info.addresses()) {
                 Ok(messages) => {
                     if messages.iter().map(|r| r.to.len()).sum::<usize>()
