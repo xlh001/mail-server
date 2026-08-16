@@ -48,6 +48,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - LDAP: Directories that store aliases as additional values of the primary address attribute provision no aliases.
 - RocksDB: `bufferSize` setting was applied to the unused default column family and had no effect.
 - Sieve: `include` statements fail to find system and user global scripts whose name contains uppercase characters.
+- Task manager: `totalDeadline` is measured from the time a task was created instead of its first failed attempt.
 
 ## [0.16.17] - 2026-08-10
 
