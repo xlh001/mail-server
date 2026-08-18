@@ -1038,7 +1038,7 @@ dependencies = [
  "chrono-tz",
  "hashify",
  "jmap-tools",
- "mail-builder",
+ "mail-builder 0.4.4",
  "mail-parser",
  "rkyv",
  "serde",
@@ -1317,7 +1317,7 @@ dependencies = [
  "libc",
  "lz4_flex 0.14.0",
  "mail-auth",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "md5",
  "nlp",
@@ -2116,7 +2116,7 @@ dependencies = [
  "futures",
  "jsonwebtoken",
  "ldap3",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "md5",
  "nlp",
@@ -2371,7 +2371,7 @@ dependencies = [
  "hashify",
  "jmap-tools",
  "jmap_proto",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "nlp",
  "rand 0.8.7",
@@ -3282,7 +3282,7 @@ dependencies = [
  "jmap",
  "jmap_proto",
  "mail-auth",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "mime",
  "percent-encoding",
@@ -3969,7 +3969,7 @@ dependencies = [
  "jmap_proto",
  "lz4_flex 0.14.0",
  "mail-auth",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "nlp",
  "p256",
@@ -4492,7 +4492,7 @@ dependencies = [
  "hashify",
  "hickory-resolver",
  "idna",
- "mail-builder",
+ "mail-builder 0.4.4",
  "mail-parser",
  "quick-xml 0.41.0",
  "rand 0.8.7",
@@ -4510,6 +4510,15 @@ name = "mail-builder"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "900998f307338c4013a28ab14d760b784067324b164448c6d98a89e44810473b"
+dependencies = [
+ "gethostname",
+]
+
+[[package]]
+name = "mail-builder"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c942e8a4b83f9351236c1e531ea9fa0237913d63c7fc36818430e0128a1ddf3"
 dependencies = [
  "gethostname",
 ]
@@ -7470,7 +7479,7 @@ dependencies = [
  "hkdf 0.13.0",
  "jmap-tools",
  "jmap_proto",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "memory-stats",
  "p256",
@@ -7655,7 +7664,7 @@ dependencies = [
  "arc-swap",
  "fancy-regex",
  "hashify",
- "mail-builder",
+ "mail-builder 0.4.4",
  "mail-parser",
  "rkyv",
  "serde",
@@ -7789,7 +7798,7 @@ dependencies = [
  "hyper-util",
  "lru-cache",
  "mail-auth",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "md5",
  "nlp",
@@ -7883,7 +7892,7 @@ dependencies = [
  "idna",
  "infer 0.22.0",
  "mail-auth",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "nlp",
  "psl",
@@ -8314,7 +8323,7 @@ dependencies = [
  "jmap-tools",
  "jmap_proto",
  "mail-auth",
- "mail-builder",
+ "mail-builder 0.5.0",
  "mail-parser",
  "managesieve",
  "migration",
