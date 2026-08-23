@@ -168,3 +168,11 @@ pub fn decode_mailto_address(value: &str) -> Cow<'_, str> {
         _ => Cow::Borrowed(value),
     }
 }
+
+pub fn extract_addr_spec(value: &str) -> Option<&str> {
+    value
+        .rsplit_once('<')
+        .and_then(|(_, rest)| rest.split_once('>'))
+        .map(|(addr, _)| addr.trim())
+        .filter(|addr| !addr.is_empty())
+}

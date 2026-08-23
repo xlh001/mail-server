@@ -12,6 +12,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - MySQL & MariaDB: Key columns are now `VARBINARY(255)` with a full-length primary key instead of `TINYBLOB`. Note: Existing deployments should run, once per table, for each of the tables `a`, `d`, `e`, `f`, `g`, `h`, `j`, `k`, `l`, `m`, `n`, `o`, `p`, `q`, `r`, `s`, `t`, `u`, `w`, `x` and `y` the command `ALTER TABLE a MODIFY k VARBINARY(255) NOT NULL;`.
 
 ## Fixed
+- CalDAV:
+  - Attendee addresses whose `mailto:` URI percent-encodes a full `name-addr` are silently dropped from the scheduling snapshot.
+  - Attendees whose calendar user address cannot be parsed should be flagged with `SCHEDULE-STATUS=3.7`.
 - CalDAV/CardDAV: `MKCALENDAR`, `MKCOL` and `PROPPATCH` store the display name, description, time zone and the other per-user properties under the authenticated account rather than the account that owns the collection, when the request is authorized through the impersonate permission.
 - FoundationDB: Older chunked entries are not deleted.
 - IMAP: `SETACL` and `DELETEACL` fail to resolve an identifier spelled with uppercase characters.
