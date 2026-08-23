@@ -27,6 +27,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - FoundationDB: Older chunked entries are not deleted.
 - IMAP: `SETACL` and `DELETEACL` fail to resolve an identifier spelled with uppercase characters.
 - JMAP:
+  - `AddressBook/get`: A new account's default address book is never recorded.
   - `Email/get` and `Email/parse` with `fetchAllBodyValues` return body values only for the parts listed in `textBody` or `htmlBody`, omitting every other `text/*` part in `bodyStructure`.
   - `Email/set` writes display names as an RFC 2047 encoded-word wrapped in a quoted-string, which RFC 2047 forbids.
   - `Mailbox/set`, `AddressBook/set` and `Calendar/set` store `isSubscribed` and the other per-user properties under the authenticated account rather than the account named in the request.
