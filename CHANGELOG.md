@@ -21,6 +21,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - Attendees whose calendar user address cannot be parsed should be flagged with `SCHEDULE-STATUS=3.7`.
   - The RSVP link in an iMIP invitation stamps `PARTSTAT` on the organizer's copy of the event only, leaving a local attendee's own copy at `NEEDS-ACTION` and sending the organizer no reply.
 - CalDAV/CardDAV: `MKCALENDAR`, `MKCOL` and `PROPPATCH` store the display name, description, time zone and the other per-user properties under the authenticated account rather than the account that owns the collection, when the request is authorized through the impersonate permission.
+- Directory: An empty column, attribute or claim returned by an external directory is synchronized as an empty string rather than a missing value.
 - FoundationDB: Older chunked entries are not deleted.
 - IMAP: `SETACL` and `DELETEACL` fail to resolve an identifier spelled with uppercase characters.
 - JMAP:
