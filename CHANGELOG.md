@@ -34,6 +34,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - MTA:
   - A domain `catchAllAddress` pointing to a mailing list or a sub-addressed mailbox is accepted at `RCPT TO` and then rejected at local delivery with `550 5.5.0 Mailbox not found`.
   - `is_local_address()` and `is_local_domain()` expression functions do not match an address or domain spelled with uppercase characters.
+  - Relay routes are rejected with `host resolves loopback address`, which prevents relaying through a local proxy or tunnel.
 - MySQL, MariaDB & PostgreSQL: Range scans, range deletions and store purges run as a single unbounded statement, so on servers that enforce a statement timeout they abort on large accounts and tasks such as account deletion can never complete. Scans now resume from the last key read and deletions fall back to bounded chunks when the server aborts a statement.
 - Network: `local_port` and `local_ip` report the address Stalwart is bound to rather than the address the client connected to when the connection arrives through a trusted proxy.
 - Search index:
