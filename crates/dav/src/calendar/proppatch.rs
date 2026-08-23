@@ -331,7 +331,8 @@ impl CalendarPropPatchRequestHandler for Server {
                 }
                 (DavProperty::CalDav(CalDavProperty::TimezoneId), DavValue::String(tz_id)) => {
                     if let Ok(tz) = Tz::from_str(&tz_id) {
-                        calendar.preferences_mut(personal_id).time_zone = Timezone::IANA(tz.as_id());
+                        calendar.preferences_mut(personal_id).time_zone =
+                            Timezone::IANA(tz.as_id());
                         items.insert_ok(property.property);
                     } else {
                         items.insert_precondition_failed_with_description(

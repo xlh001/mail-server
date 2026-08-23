@@ -4,9 +4,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
  */
 
-use super::{
-    DELETE_CHUNK_SIZE, MIN_DELETE_CHUNK_SIZE, MysqlStore, into_error, is_timeout_error,
-};
+use super::{DELETE_CHUNK_SIZE, MIN_DELETE_CHUNK_SIZE, MysqlStore, into_error, is_timeout_error};
 use crate::{
     IndexKey, Key, LogKey, SUBSPACE_COUNTER, SUBSPACE_IN_MEMORY_COUNTER, SUBSPACE_QUOTA,
     SUBSPACE_REGISTRY_IDX,
@@ -466,7 +464,9 @@ async fn purge_table(conn: &mut Conn, table: char) -> trc::Result<()> {
     }
 
     let purge = conn
-        .prep(format!("DELETE FROM {table} WHERE v = 0 AND k >= ? AND k < ?"))
+        .prep(format!(
+            "DELETE FROM {table} WHERE v = 0 AND k >= ? AND k < ?"
+        ))
         .await
         .map_err(into_error)?;
     let purge_last = conn
@@ -485,10 +485,7 @@ async fn purge_table(conn: &mut Conn, table: char) -> trc::Result<()> {
             .map_err(into_error)?;
 
         loop {
-            let next = match conn
-                .exec_first::<Vec<u8>, _, _>(&boundary, (&from,))
-                .await
-            {
+            let next = match conn.exec_first::<Vec<u8>, _, _>(&boundary, (&from,)).await {
                 Ok(next) => next,
                 Err(err) if is_timeout_error(&err) && chunk_size > MIN_DELETE_CHUNK_SIZE => {
                     chunk_size = (chunk_size / 2).max(MIN_DELETE_CHUNK_SIZE);
