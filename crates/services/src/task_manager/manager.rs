@@ -611,7 +611,14 @@ async fn update_tasks(
 }
 
 pub fn perpetual_retry_time(typ: TaskType, attempt: u64) -> Option<u64> {
-    matches!(typ, TaskType::AcmeRenewal | TaskType::DkimManagement).then(|| {
+    matches!(
+        typ,
+        TaskType::AcmeRenewal
+            | TaskType::DkimManagement
+            | TaskType::IndexDocument
+            | TaskType::UnindexDocument
+    )
+    .then(|| {
         now().saturating_add(
             PERPETUAL_RETRY_MIN_DELAY
                 .saturating_mul(1u64 << attempt.min(4))
