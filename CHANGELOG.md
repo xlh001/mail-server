@@ -31,6 +31,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `Email/set` writes display names as an RFC 2047 encoded-word wrapped in a quoted-string, which RFC 2047 forbids.
   - `Mailbox/set`, `AddressBook/set` and `Calendar/set` store `isSubscribed` and the other per-user properties under the authenticated account rather than the account named in the request.
   - `Principal/query` returns no results when the `name` or `email` filter is spelled with uppercase characters.
+  - `FileNode/set`: File nodes created over JMAP are returned with a `<D:href>` holding the raw name over WebDAV.
 - Meilisearch:
   - Queries return at most 1000 results, as the `maxTotalHits` pagination setting is left at the Meilisearch default.
   - Searches combining several terms return documents that match only some of them.
