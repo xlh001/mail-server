@@ -11,12 +11,14 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Changed
 
 ## Fixed
+- CalDAV/CardDAV: `MKCALENDAR`, `MKCOL` and `PROPPATCH` store the display name, description, time zone and the other per-user properties under the authenticated account rather than the account that owns the collection, when the request is authorized through the impersonate permission.
 - FoundationDB: Older chunked entries are not deleted.
 - IMAP: `SETACL` and `DELETEACL` fail to resolve an identifier spelled with uppercase characters.
 - JMAP:
   - `Email/set` writes display names as an RFC 2047 encoded-word wrapped in a quoted-string, which RFC 2047 forbids.
+  - `Mailbox/set`, `AddressBook/set` and `Calendar/set` store `isSubscribed` and the other per-user properties under the authenticated account rather than the account named in the request, when the request is authorized through the impersonate permission.
   - `Principal/query` returns no results when the `name` or `email` filter is spelled with uppercase characters.
-- MTA: `is_local_address()` and `is_local_domain()` expression functions do not match an address or domain spelled with uppercase characters, routing local recipients to the relay.
+- MTA: `is_local_address()` and `is_local_domain()` expression functions do not match an address or domain spelled with uppercase characters.
 
 ## [0.16.18] - 2026-08-17
 

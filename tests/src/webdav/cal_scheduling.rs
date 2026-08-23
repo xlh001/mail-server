@@ -29,6 +29,10 @@ use std::str::FromStr;
 use store::write::now;
 use types::collection::SyncCollection;
 
+fn unfold(ical: &str) -> String {
+    ical.replace("\r\n ", "")
+}
+
 pub async fn test(test: &TestServer) {
     println!("Running calendar scheduling tests...");
     let bill = test.account("bill@example.com");
@@ -214,7 +218,7 @@ pub async fn test(test: &TestServer) {
     assert_eq!(itips.len(), 1);
     let itip = itips.first().unwrap();
     assert!(
-        itip.contains("SUMMARY:Lunch") && itip.contains("METHOD:REQUEST"),
+        unfold(itip).contains("SUMMARY:Lunch") && unfold(itip).contains("METHOD:REQUEST"),
         "failed for itip: {itip}"
     );
 
@@ -267,17 +271,15 @@ pub async fn test(test: &TestServer) {
     let itips = john_client.fetch_and_remove_itips().await;
     assert_eq!(itips.len(), 1);
     assert!(
-        itips[0].contains("METHOD:REPLY")
-            && itips[0].contains("PARTSTAT=ACCEPTED:mailto:jane.smith"),
+        unfold(&itips[0]).contains("METHOD:REPLY")
+            && unfold(&itips[0]).contains("PARTSTAT=ACCEPTED:mailto:jane.smith"),
         "failed for itip: {}",
         itips[0]
     );
     let cals = john_client.fetch_icals().await;
     assert_eq!(cals.len(), 1);
     assert!(
-        cals[0]
-            .ical
-            .contains("PARTSTAT=ACCEPTED;SCHEDULE-STATUS=2.0:mailto:jane"),
+        unfold(&cals[0].ical).contains("PARTSTAT=ACCEPTED;SCHEDULE-STATUS=2.0:mailto:jane"),
         "failed for cal: {}",
         cals[0].ical
     );
@@ -308,8 +310,8 @@ pub async fn test(test: &TestServer) {
     let itips = john_client.fetch_and_remove_itips().await;
     assert_eq!(itips.len(), 1);
     assert!(
-        itips[0].contains("METHOD:REPLY")
-            && itips[0].contains("PARTSTAT=DECLINED:mailto:jane.smith"),
+        unfold(&itips[0]).contains("METHOD:REPLY")
+            && unfold(&itips[0]).contains("PARTSTAT=DECLINED:mailto:jane.smith"),
         "failed for itip: {}",
         itips[0]
     );
@@ -317,7 +319,7 @@ pub async fn test(test: &TestServer) {
     assert_eq!(cals.len(), 1);
     let cal = cals.into_iter().next().unwrap();
     assert!(
-        cal.ical.contains("PARTSTAT=DECLINED:mailto:jane"),
+        unfold(&cal.ical).contains("PARTSTAT=DECLINED:mailto:jane"),
         "failed for cal: {}",
         cal.ical
     );
@@ -367,7 +369,7 @@ pub async fn test(test: &TestServer) {
     assert_eq!(cals.len(), 1);
     let cal = cals.into_iter().next().unwrap();
     assert!(
-        cal.ical.contains("PARTSTAT=ACCEPTED:mailto:bill"),
+        unfold(&cal.ical).contains("PARTSTAT=ACCEPTED:mailto:bill"),
         "failed for cal: {}",
         cal.ical
     );
@@ -414,12 +416,12 @@ pub async fn test(test: &TestServer) {
             }
             "A:schedule-response.A:response.A:calendar-data" => {
                 assert!(
-                    value.contains("BEGIN:VFREEBUSY"),
+                    unfold(value).contains("BEGIN:VFREEBUSY"),
                     "missing freebusy data in response: {response:?}"
                 );
                 if account == "jdoe@example.com" {
                     assert!(
-                        value.contains("FREEBUSY;FBTYPE=BUSY:"),
+                        unfold(value).contains("FREEBUSY;FBTYPE=BUSY:"),
                         "missing freebusy data in response: {response:?}"
                     );
                     found_data = true;
@@ -457,7 +459,7 @@ pub async fn test(test: &TestServer) {
     test.wait_for_tasks().await;
     let mut itips = bill_client.fetch_and_remove_itips().await;
     itips.sort_unstable_by(|a, _| {
-        if a.contains("Lunch") {
+        if unfold(a).contains("Lunch") {
             std::cmp::Ordering::Less
         } else {
             std::cmp::Ordering::Greater
@@ -465,12 +467,13 @@ pub async fn test(test: &TestServer) {
     });
     assert_eq!(itips.len(), 2);
     assert!(
-        itips[0].contains("METHOD:REQUEST") && itips[0].contains("Lunch"),
+        unfold(&itips[0]).contains("METHOD:REQUEST") && unfold(&itips[0]).contains("Lunch"),
         "failed for itip: {}",
         itips[0]
     );
     assert!(
-        itips[1].contains("METHOD:REQUEST") && itips[1].contains("Breakfast at Tiffany's"),
+        unfold(&itips[1]).contains("METHOD:REQUEST")
+            && unfold(&itips[1]).contains("Breakfast at Tiffany's"),
         "failed for itip: {}",
         itips[1]
     );
@@ -478,8 +481,8 @@ pub async fn test(test: &TestServer) {
     assert_eq!(cals.len(), 1);
     let cal = cals.into_iter().next().unwrap();
     assert!(
-        cal.ical.contains("SUMMARY:Breakfast at Tiffany's")
-            && cal.ical.contains("PARTSTAT=ACCEPTED:mailto:bill"),
+        unfold(&cal.ical).contains("SUMMARY:Breakfast at Tiffany's")
+            && unfold(&cal.ical).contains("PARTSTAT=ACCEPTED:mailto:bill"),
         "failed for cal: {}",
         cal.ical
     );
@@ -498,7 +501,8 @@ pub async fn test(test: &TestServer) {
     let itips = bill_client.fetch_and_remove_itips().await;
     assert_eq!(itips.len(), 1);
     assert!(
-        itips[0].contains("METHOD:CANCEL") && itips[0].contains("STATUS:CANCELLED"),
+        unfold(&itips[0]).contains("METHOD:CANCEL")
+            && unfold(&itips[0]).contains("STATUS:CANCELLED"),
         "failed for itip: {}",
         itips[0]
     );
@@ -506,7 +510,7 @@ pub async fn test(test: &TestServer) {
     assert_eq!(cals.len(), 1);
     let cal = cals.into_iter().next().unwrap();
     assert!(
-        cal.ical.contains("STATUS:CANCELLED"),
+        unfold(&cal.ical).contains("STATUS:CANCELLED"),
         "failed for cal: {}",
         cal.ical
     );
