@@ -49,6 +49,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - Indexing tasks are dropped when the document metadata read returns no data, which can happen on SQL read replicas that have not yet caught up with the primary.
   - The DNS management task republishes the DKIM records of retired keys that the DKIM rotation task had already removed from the zone.
 - Sieve: `spamtest` returns only `1` or `10` (and `spamtest :percent` only `0` or `100`), so scripts cannot act on intermediate spam scores.
+- Spam filter: `MIME_BAD` is tagged whenever the declared `Content-Type` of an attachment is not byte identical to the type detected from its magic bytes.
 
 ## [0.16.18] - 2026-08-17
 
