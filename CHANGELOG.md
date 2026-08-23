@@ -12,7 +12,11 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 
 ## Fixed
 - FoundationDB: Older chunked entries are not deleted.
-- JMAP: `Email/set` writes display names as an RFC 2047 encoded-word wrapped in a quoted-string, which RFC 2047 forbids.
+- IMAP: `SETACL` and `DELETEACL` fail to resolve an identifier spelled with uppercase characters.
+- JMAP:
+  - `Email/set` writes display names as an RFC 2047 encoded-word wrapped in a quoted-string, which RFC 2047 forbids.
+  - `Principal/query` returns no results when the `name` or `email` filter is spelled with uppercase characters.
+- MTA: `is_local_address()` and `is_local_domain()` expression functions do not match an address or domain spelled with uppercase characters, routing local recipients to the relay.
 
 ## [0.16.18] - 2026-08-17
 
