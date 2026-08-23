@@ -9,6 +9,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Added
 
 ## Changed
+- MySQL & MariaDB: Key columns are now `VARBINARY(255)` with a full-length primary key instead of `TINYBLOB`. New deployments get the new schema automatically. Existing deployments should run, once per table, for each of the tables `a`, `d`, `e`, `f`, `g`, `h`, `j`, `k`, `l`, `m`, `n`, `o`, `p`, `q`, `r`, `s`, `t`, `u`, `w`, `x` and `y` the command `ALTER TABLE a MODIFY k VARBINARY(255) NOT NULL;`.
 
 ## Fixed
 - CalDAV/CardDAV: `MKCALENDAR`, `MKCOL` and `PROPPATCH` store the display name, description, time zone and the other per-user properties under the authenticated account rather than the account that owns the collection, when the request is authorized through the impersonate permission.
@@ -19,6 +20,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `Mailbox/set`, `AddressBook/set` and `Calendar/set` store `isSubscribed` and the other per-user properties under the authenticated account rather than the account named in the request, when the request is authorized through the impersonate permission.
   - `Principal/query` returns no results when the `name` or `email` filter is spelled with uppercase characters.
 - MTA: `is_local_address()` and `is_local_domain()` expression functions do not match an address or domain spelled with uppercase characters.
+- MySQL, MariaDB & PostgreSQL: Range scans, range deletions and store purges run as a single unbounded statement, so on servers that enforce a statement timeout they abort on large accounts and tasks such as account deletion can never complete. Scans now resume from the last key read and deletions fall back to bounded chunks when the server aborts a statement.
 
 ## [0.16.18] - 2026-08-17
 
