@@ -13,6 +13,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - MySQL & MariaDB: Key columns are now `VARBINARY(255)` with a full-length primary key instead of `TINYBLOB`. Note: Existing deployments should run, once per table, for each of the tables `a`, `d`, `e`, `f`, `g`, `h`, `j`, `k`, `l`, `m`, `n`, `o`, `p`, `q`, `r`, `s`, `t`, `u`, `w`, `x` and `y` the command `ALTER TABLE a MODIFY k VARBINARY(255) NOT NULL;`.
 
 ## Fixed
+- ACME:
+  - Order and authorization failures are never logged, so an order rejected by the CA.
+  - An order rejected by the CA marks the renewal task as permanently failed.
 - CalDAV:
   - Attendee addresses whose `mailto:` URI percent-encodes a full `name-addr` are silently dropped from the scheduling snapshot.
   - Attendees whose calendar user address cannot be parsed should be flagged with `SCHEDULE-STATUS=3.7`.
@@ -36,6 +39,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - Indexing tasks are dropped after `maxAttempts` failures, so a search store that is unavailable or overloaded leaves messages permanently missing from the index, invisible to any `Email/query` that filters or sorts on indexed fields. Index and unindex tasks are now retried indefinitely with a capped backoff.
   - Indexing tasks are dropped when the document metadata read returns no data, which can happen on SQL read replicas that have not yet caught up with the primary. The read is now retried before the task is discarded.
 - Sieve: `spamtest` returns only `1` or `10` (and `spamtest :percent` only `0` or `100`), so scripts cannot act on intermediate spam scores.
+- Task manager: `totalDeadline` is not enforced on tasks that fail with a specific retry time.
 
 ## [0.16.18] - 2026-08-17
 
