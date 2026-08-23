@@ -395,6 +395,8 @@ pub(crate) fn itip_add_tz(message: &mut ICalendar, ical: &ICalendar) {
     {
         message.copy_timezones(ical);
     }
+
+    message.add_missing_timezones();
 }
 
 #[inline]

@@ -26,6 +26,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `/api/discover` splits the account name on `@` without accounting for the `%` master user separator or the recovery administrator.
 - FoundationDB: Older chunked entries are not deleted.
 - IMAP: `SETACL` and `DELETEACL` fail to resolve an identifier spelled with uppercase characters.
+- iMIP: Invitations, replies and cancellations reference a `TZID` parameter with no matching `VTIMEZONE` component whenever the event was stored without one.
 - JMAP:
   - `AddressBook/get`: A new account's default address book is never recorded.
   - `Email/get` and `Email/parse` with `fetchAllBodyValues` return body values only for the parts listed in `textBody` or `htmlBody`, omitting every other `text/*` part in `bodyStructure`.
