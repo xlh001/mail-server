@@ -28,7 +28,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - Searches combining several terms return documents that match only some of them.
   - A task confirmation timeout is reported as a success when `failOnTimeout` is disabled.
 - Import: `--import` always aborts with the target database already containing data in the key range being imported.
-- MTA: `is_local_address()` and `is_local_domain()` expression functions do not match an address or domain spelled with uppercase characters.
+- MTA:
+  - A domain `catchAllAddress` pointing to a mailing list or a sub-addressed mailbox is accepted at `RCPT TO` and then rejected at local delivery with `550 5.5.0 Mailbox not found`.
+  - `is_local_address()` and `is_local_domain()` expression functions do not match an address or domain spelled with uppercase characters.
 - MySQL, MariaDB & PostgreSQL: Range scans, range deletions and store purges run as a single unbounded statement, so on servers that enforce a statement timeout they abort on large accounts and tasks such as account deletion can never complete. Scans now resume from the last key read and deletions fall back to bounded chunks when the server aborts a statement.
 - Search index:
   - Indexing tasks are dropped after `maxAttempts` failures, so a search store that is unavailable or overloaded leaves messages permanently missing from the index, invisible to any `Email/query` that filters or sorts on indexed fields. Index and unindex tasks are now retried indefinitely with a capped backoff.
