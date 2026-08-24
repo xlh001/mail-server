@@ -846,6 +846,7 @@ pub enum Property {
     NumFeatures = 390,
     NumReplicas = 350,
     NumShards = 351,
+    OauthClientId = 930,
     OnSuccessRenewCertificate = 813,
     OpenTelemetry = 495,
     Options = 630,

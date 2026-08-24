@@ -1657,7 +1657,7 @@ impl RegistryJsonPropertyPatch for AppPassword {
 
 impl ObjectImpl for Application {
     const FLAGS: u64 = 0;
-    const VERSION: u8 = 0;
+    const VERSION: u8 = 1;
     const OBJECT: ObjectType = ObjectType::Application;
 
     fn validate(&self, errors: &mut Vec<ValidationError>) -> bool {
@@ -1684,6 +1684,11 @@ impl ObjectImpl for Application {
                 errors.push(ValidationError::required(Property::UnpackDirectory));
             }
         }
+        if let Some(value) = &self.oauth_client_id {
+            if value.is_empty() {
+                errors.push(ValidationError::required(Property::OauthClientId));
+            }
+        }
         errors.len() == neb
     }
 
@@ -1698,6 +1703,7 @@ impl Pickle for Application {
         self.url_prefix.pickle(out);
         self.auto_update_frequency.pickle(out);
         self.unpack_directory.pickle(out);
+        self.oauth_client_id.pickle(out);
     }
 
     fn unpickle(stream: &mut crate::pickle::PickledStream<'_>) -> Option<Self> {
@@ -1708,6 +1714,9 @@ impl Pickle for Application {
         this.url_prefix = Pickle::unpickle(stream)?;
         this.auto_update_frequency = Pickle::unpickle(stream)?;
         this.unpack_directory = Pickle::unpickle(stream)?;
+        if stream.version() >= 1 {
+            this.oauth_client_id = Pickle::unpickle(stream)?;
+        }
         Some(this)
     }
 }
@@ -1721,13 +1730,14 @@ impl Default for Application {
             url_prefix: Default::default(),
             auto_update_frequency: Duration::from_millis(7776000000),
             unpack_directory: Default::default(),
+            oauth_client_id: Default::default(),
         }
     }
 }
 
 impl IntoValue for Application {
     fn into_value(self) -> JmapValue<'static> {
-        let mut map = jmap_tools::Map::with_capacity(8);
+        let mut map = jmap_tools::Map::with_capacity(9);
         map.insert_unchecked(Property::Enabled, self.enabled.into_value());
         map.insert_unchecked(Property::Description, self.description.into_value());
         map.insert_unchecked(Property::ResourceUrl, self.resource_url.into_value());
@@ -1740,6 +1750,7 @@ impl IntoValue for Application {
             Property::UnpackDirectory,
             self.unpack_directory.into_value(),
         );
+        map.insert_unchecked(Property::OauthClientId, self.oauth_client_id.into_value());
         JmapValue::Object(map)
     }
 }
@@ -1764,6 +1775,9 @@ impl RegistryJsonPropertyPatch for Application {
             Some(Property::AutoUpdateFrequency) => self.auto_update_frequency.patch(pointer, value),
             Some(Property::UnpackDirectory) => self
                 .unpack_directory
+                .patch(pointer.with_validators(&[StringValidator::Trim]), value),
+            Some(Property::OauthClientId) => self
+                .oauth_client_id
                 .patch(pointer.with_validators(&[StringValidator::Trim]), value),
             Some(Property::Type) => Ok(MaybeUnpatched::Unpatched {
                 property: Property::Type,
@@ -30461,7 +30475,7 @@ impl Default for OidcDirectory {
         Self {
             description: Default::default(),
             issuer_url: Default::default(),
-            require_audience: Some("stalwart".to_string()),
+            require_audience: Default::default(),
             require_scopes: Map::new(vec!["openid".to_string(), "email".to_string()]),
             claim_username: "preferred_username".to_string(),
             username_domain: Default::default(),

@@ -999,6 +999,7 @@ impl EnumImpl for Property {
             b"numFeatures" => Property::NumFeatures,
             b"numReplicas" => Property::NumReplicas,
             b"numShards" => Property::NumShards,
+            b"oauthClientId" => Property::OauthClientId,
             b"onSuccessRenewCertificate" => Property::OnSuccessRenewCertificate,
             b"openTelemetry" => Property::OpenTelemetry,
             b"options" => Property::Options,
@@ -1934,6 +1935,7 @@ impl EnumImpl for Property {
             Property::NumFeatures => "numFeatures",
             Property::NumReplicas => "numReplicas",
             Property::NumShards => "numShards",
+            Property::OauthClientId => "oauthClientId",
             Property::OnSuccessRenewCertificate => "onSuccessRenewCertificate",
             Property::OpenTelemetry => "openTelemetry",
             Property::Options => "options",
@@ -2873,6 +2875,7 @@ impl EnumImpl for Property {
             390 => Some(Property::NumFeatures),
             350 => Some(Property::NumReplicas),
             351 => Some(Property::NumShards),
+            930 => Some(Property::OauthClientId),
             813 => Some(Property::OnSuccessRenewCertificate),
             495 => Some(Property::OpenTelemetry),
             630 => Some(Property::Options),
@@ -3215,7 +3218,7 @@ impl EnumImpl for Property {
         }
     }
 
-    const COUNT: usize = 930;
+    const COUNT: usize = 931;
 }
 
 impl serde::Serialize for Property {

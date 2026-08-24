@@ -228,6 +228,8 @@ pub struct Application {
     pub auto_update_frequency: Duration,
     #[serde(rename = "unpackDirectory")]
     pub unpack_directory: Option<String>,
+    #[serde(rename = "oauthClientId")]
+    pub oauth_client_id: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

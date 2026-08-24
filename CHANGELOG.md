@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.16.19] - 2026-08-XX
+## [0.16.19] - 2026-08-24
 
 If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If you are upgrading from v0.15.x and below, please read the [upgrading documentation](https://github.com/stalwartlabs/stalwart/blob/main/UPGRADING/v0_16.md) for more information on how to upgrade from previous versions.
 
 ## Added
+- WebUI: `oauthClientId` setting in `Application`, which allows the WebUI to use a different OAuth client than the default.
 - Sieve: `env.spam.score` and `env.spam.is_spam` variables, which expose the spam filter result to system scripts running at the `DATA` stage.
 
 ## Changed
