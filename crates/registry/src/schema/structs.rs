@@ -92,6 +92,8 @@ pub struct AddressBook {
     pub max_address_books: Option<u64>,
     #[serde(rename = "maxContacts")]
     pub max_contacts: Option<u64>,
+    #[serde(rename = "vCardVersion")]
+    pub v_card_version: VCardVersion,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

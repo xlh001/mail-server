@@ -1168,6 +1168,7 @@ pub enum Property {
     UserOcid = 901,
     Username = 131,
     UsernameDomain = 610,
+    VCardVersion = 931,
     ValidateDomain = 413,
     Value = 492,
     VariableName = 675,

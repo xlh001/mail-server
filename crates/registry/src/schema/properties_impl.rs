@@ -1321,6 +1321,7 @@ impl EnumImpl for Property {
             b"userOcid" => Property::UserOcid,
             b"username" => Property::Username,
             b"usernameDomain" => Property::UsernameDomain,
+            b"vCardVersion" => Property::VCardVersion,
             b"validateDomain" => Property::ValidateDomain,
             b"value" => Property::Value,
             b"variableName" => Property::VariableName,
@@ -2257,6 +2258,7 @@ impl EnumImpl for Property {
             Property::UserOcid => "userOcid",
             Property::Username => "username",
             Property::UsernameDomain => "usernameDomain",
+            Property::VCardVersion => "vCardVersion",
             Property::ValidateDomain => "validateDomain",
             Property::Value => "value",
             Property::VariableName => "variableName",
@@ -3197,6 +3199,7 @@ impl EnumImpl for Property {
             901 => Some(Property::UserOcid),
             131 => Some(Property::Username),
             610 => Some(Property::UsernameDomain),
+            931 => Some(Property::VCardVersion),
             413 => Some(Property::ValidateDomain),
             492 => Some(Property::Value),
             675 => Some(Property::VariableName),
@@ -3218,7 +3221,7 @@ impl EnumImpl for Property {
         }
     }
 
-    const COUNT: usize = 931;
+    const COUNT: usize = 932;
 }
 
 impl serde::Serialize for Property {

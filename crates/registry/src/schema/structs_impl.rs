@@ -672,7 +672,7 @@ impl Action {
 
 impl ObjectImpl for AddressBook {
     const FLAGS: u64 = OBJ_SINGLETON;
-    const VERSION: u8 = 0;
+    const VERSION: u8 = 1;
     const OBJECT: ObjectType = ObjectType::AddressBook;
 
     fn validate(&self, errors: &mut Vec<ValidationError>) -> bool {
@@ -710,6 +710,7 @@ impl Pickle for AddressBook {
         self.max_v_card_size.pickle(out);
         self.max_address_books.pickle(out);
         self.max_contacts.pickle(out);
+        self.v_card_version.pickle(out);
     }
 
     fn unpickle(stream: &mut crate::pickle::PickledStream<'_>) -> Option<Self> {
@@ -719,6 +720,9 @@ impl Pickle for AddressBook {
         this.max_v_card_size = Pickle::unpickle(stream)?;
         this.max_address_books = Pickle::unpickle(stream)?;
         this.max_contacts = Pickle::unpickle(stream)?;
+        if stream.version() >= 1 {
+            this.v_card_version = Pickle::unpickle(stream)?;
+        }
         Some(this)
     }
 }
@@ -731,13 +735,14 @@ impl Default for AddressBook {
             max_v_card_size: 524288u64,
             max_address_books: Some(250u64),
             max_contacts: Default::default(),
+            v_card_version: VCardVersion::V4,
         }
     }
 }
 
 impl IntoValue for AddressBook {
     fn into_value(self) -> JmapValue<'static> {
-        let mut map = jmap_tools::Map::with_capacity(7);
+        let mut map = jmap_tools::Map::with_capacity(8);
         map.insert_unchecked(
             Property::DefaultDisplayName,
             self.default_display_name.into_value(),
@@ -752,6 +757,7 @@ impl IntoValue for AddressBook {
             self.max_address_books.into_value(),
         );
         map.insert_unchecked(Property::MaxContacts, self.max_contacts.into_value());
+        map.insert_unchecked(Property::VCardVersion, self.v_card_version.into_value());
         JmapValue::Object(map)
     }
 }
@@ -772,6 +778,7 @@ impl RegistryJsonPropertyPatch for AddressBook {
             Some(Property::MaxVCardSize) => self.max_v_card_size.patch(pointer, value),
             Some(Property::MaxAddressBooks) => self.max_address_books.patch(pointer, value),
             Some(Property::MaxContacts) => self.max_contacts.patch(pointer, value),
+            Some(Property::VCardVersion) => self.v_card_version.patch(pointer, value),
             Some(Property::Type) => Ok(MaybeUnpatched::Unpatched {
                 property: Property::Type,
                 value,
