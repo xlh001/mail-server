@@ -500,7 +500,7 @@ dependencies = [
  "paste",
  "pin-project",
  "quick-xml 0.31.0",
- "rand 0.8.7",
+ "rand 0.8.8",
  "reqwest 0.12.28",
  "rustc_version",
  "serde",
@@ -1021,9 +1021,9 @@ dependencies = [
 
 [[package]]
 name = "calcard"
-version = "0.3.12"
+version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "65e3ea651377325105d53a7d9cd27c2ff09c62fe4d14b3a352b808f39d9ac457"
+checksum = "75b779382e675380a1ff8a4873acee5ba60158be7a00458fb98e6b85aad1f2ee"
 dependencies = [
  "ahash",
  "chrono",
@@ -2366,7 +2366,7 @@ dependencies = [
  "mail-builder 0.5.0",
  "mail-parser",
  "nlp",
- "rand 0.8.7",
+ "rand 0.8.8",
  "rasn",
  "rasn-cms",
  "rasn-pkix",
@@ -4556,7 +4556,7 @@ dependencies = [
  "mail-builder 0.4.4",
  "mail-parser",
  "quick-xml 0.41.0",
- "rand 0.8.7",
+ "rand 0.8.8",
  "rkyv",
  "rsa",
  "rustls-pki-types",
@@ -5126,7 +5126,7 @@ dependencies = [
  "num-integer",
  "num-iter",
  "num-traits",
- "rand 0.8.7",
+ "rand 0.8.8",
  "smallvec",
  "zeroize",
 ]
@@ -6136,7 +6136,7 @@ dependencies = [
  "byteorder",
  "hmac 0.10.1",
  "md-5 0.9.1",
- "rand 0.8.7",
+ "rand 0.8.8",
  "sha-1",
  "sha2 0.9.9",
 ]
@@ -6310,9 +6310,9 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.8.7"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22f6172bdec972074665ed81ed53b71da00bfc44b65a753cfde883ec4c702a1a"
+checksum = "e058c7de0b26af77780c769414d6257830bb240f3c38477dbc2c16e5f54d6d4c"
 dependencies = [
  "libc",
  "rand_chacha 0.3.1",
@@ -8715,7 +8715,7 @@ dependencies = [
  "futures-sink",
  "http 1.5.0",
  "httparse",
- "rand 0.8.7",
+ "rand 0.8.8",
  "rustls-pki-types",
  "tokio",
  "tokio-rustls",
@@ -9088,7 +9088,7 @@ dependencies = [
  "humantime",
  "lazy_static",
  "log",
- "rand 0.8.7",
+ "rand 0.8.8",
  "serde",
  "spin 0.10.1",
 ]
@@ -9988,7 +9988,7 @@ dependencies = [
  "once_cell",
  "petgraph",
  "phf 0.13.1",
- "rand 0.8.7",
+ "rand 0.8.8",
  "rustc_version",
  "serde",
  "serde_json",
@@ -10032,7 +10032,7 @@ version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "31b792ce46854f252af31869030224c2da6bd9d72a1cd2812e29b457444a07b1"
 dependencies = [
- "rand 0.8.7",
+ "rand 0.8.8",
  "tracing",
  "uhlc",
  "zenoh-buffers",
@@ -10093,7 +10093,7 @@ checksum = "1b496e8c984260c4d80ce58b42956081dc8656f0b875766e5ae0f8e39510fdee"
 dependencies = [
  "aes 0.8.4",
  "hmac 0.12.1",
- "rand 0.8.7",
+ "rand 0.8.8",
  "rand_chacha 0.3.1",
  "sha3 0.10.9",
  "zenoh-result",
@@ -10108,7 +10108,7 @@ dependencies = [
  "getrandom 0.2.17",
  "hashbrown 0.16.1",
  "keyed-set",
- "rand 0.8.7",
+ "rand 0.8.8",
  "schemars 1.2.2",
  "serde",
  "token-cell",
@@ -10310,7 +10310,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce5505e2569421d3cb6792d4b3d9a6589d04add3bf34c0a7c37c03c2573b79ad"
 dependencies = [
  "const_format",
- "rand 0.8.7",
+ "rand 0.8.8",
  "serde",
  "uhlc",
  "zenoh-buffers",
@@ -10384,7 +10384,7 @@ dependencies = [
  "futures",
  "lazy_static",
  "lz4_flex 0.10.0",
- "rand 0.8.7",
+ "rand 0.8.8",
  "ringbuffer-spsc",
  "rsa",
  "serde",

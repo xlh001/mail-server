@@ -501,8 +501,8 @@ DTSTART:19970701T200000Z
 ATTENDEE;ROLE=CHAIR;PARTSTAT=ACCEPTED;CN=A:mailto:a@example.com
 ATTENDEE;RSVP=TRUE;CUTYPE=INDIVIDUAL;CN="Jane Doe":mailto:jane.doe@example.
  net
-ATTENDEE;RSVP=TRUE;CUTYPE=INDIVIDUAL;CN="Mike Douglass";SCHEDULE-STATUS=3.7:
- mailto:not-a-calendar-user
+ATTENDEE;RSVP=TRUE;CUTYPE=INDIVIDUAL;CN="Mike Douglass";SCHEDULE-STATUS=3.7
+ :mailto:not-a-calendar-user
 ORGANIZER:mailto:a@example.com
 UID:unreachable-attendee@example.com
 DTSTAMP:0
