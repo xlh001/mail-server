@@ -48,11 +48,11 @@ ATTENDEE;CN="Wilfredo Sanchez Vega";CUTYPE=INDIVIDUAL;PARTSTAT=NEEDS-ACTION;
 ORGANIZER;CN="Cyrus Daboo":mailto:cyrus@example.com
 UID:9263504FD3AD
 DTSTAMP:0
-SEQUENCE:1
+SEQUENCE:0
 END:VEVENT
 END:VCALENDAR
 
-# Make sure the sequence number is updated
+# Make sure the initial request leaves the sequence number at 0
 > get cyrus@example.com 9263504FD3AD
 BEGIN:VCALENDAR
 PRODID:-//Example Corp.//CalDAV Client//EN
@@ -73,7 +73,7 @@ ATTENDEE;CN="Wilfredo Sanchez Vega";CUTYPE=INDIVIDUAL;PARTSTAT=NEEDS-ACTION;
 ORGANIZER;CN="Cyrus Daboo":mailto:cyrus@example.com
 UID:9263504FD3AD
 DTSTAMP:1
-SEQUENCE:1
+SEQUENCE:0
 END:VEVENT
 END:VCALENDAR
 
@@ -101,7 +101,7 @@ ATTENDEE;CN="Wilfredo Sanchez Vega";CUTYPE=INDIVIDUAL;PARTSTAT=NEEDS-ACTION;
 ORGANIZER;CN="Cyrus Daboo":mailto:cyrus@example.com
 UID:9263504FD3AD
 DTSTAMP:0
-SEQUENCE:1
+SEQUENCE:0
 END:VEVENT
 END:VCALENDAR
 
@@ -210,7 +210,7 @@ ATTENDEE;CN="Wilfredo Sanchez Vega";CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;
 ORGANIZER;CN="Cyrus Daboo":mailto:cyrus@example.com
 UID:9263504FD3AD
 DTSTAMP:1
-SEQUENCE:1
+SEQUENCE:0
 END:VEVENT
 END:VCALENDAR
 
