@@ -495,6 +495,8 @@ pub async fn build_itip_template(
         );
     }
     variables.insert_single(CalendarTemplateVariable::PageTitle, subject.clone());
+    variables.insert_single(CalendarTemplateVariable::Lang, locale.name.to_string());
+    variables.insert_single(CalendarTemplateVariable::Dir, locale.direction.to_string());
     variables.insert_single(CalendarTemplateVariable::LogoCid, format!("cid:{logo_cid}"));
 
     if let Some(guests) = fields

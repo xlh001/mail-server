@@ -599,6 +599,8 @@ async fn build_template(
     let logo_cid = format!("cid:{logo_cid}");
     let mut variables = Variables::new();
     variables.insert_single(CalendarTemplateVariable::PageTitle, subject.as_str());
+    variables.insert_single(CalendarTemplateVariable::Lang, locale.name);
+    variables.insert_single(CalendarTemplateVariable::Dir, locale.direction);
     variables.insert_single(
         CalendarTemplateVariable::Header,
         locale.calendar_alarm_header,

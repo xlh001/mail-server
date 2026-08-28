@@ -56,6 +56,17 @@ fn const_name(language: &str) -> String {
 
 const PLURAL_CATEGORIES: [&str; 6] = ["zero", "one", "two", "few", "many", "other"];
 
+const RTL_LANGUAGES: [&str; 10] = ["ar", "ckb", "dv", "fa", "he", "ps", "sd", "ug", "ur", "yi"];
+
+fn direction(language: &str) -> &'static str {
+    let tag = language.split(['-', '_']).next().unwrap_or(language);
+    if RTL_LANGUAGES.contains(&tag) {
+        "rtl"
+    } else {
+        "ltr"
+    }
+}
+
 fn split_plural_forms(value: &str) -> Option<Vec<(&str, &str)>> {
     value
         .split(';')
@@ -135,6 +146,7 @@ fn generate_locale_code(locales: &HashMap<String, HashMap<String, String>>) -> S
     code.push_str("#[derive(Debug, Clone)]\n");
     code.push_str("pub struct Locale {\n");
     code.push_str("    pub name: &'static str,\n");
+    code.push_str("    pub direction: &'static str,\n");
 
     for key in locales.keys() {
         let field_type = if plural.contains(key) {
@@ -160,6 +172,7 @@ fn generate_locale_code(locales: &HashMap<String, HashMap<String, String>>) -> S
             const_name(lang)
         ));
         code.push_str(&format!("    name: {lang:?},\n"));
+        code.push_str(&format!("    direction: {:?},\n", direction(lang)));
 
         for (key, translations) in locales {
             let value = translations
@@ -174,6 +187,17 @@ fn generate_locale_code(locales: &HashMap<String, HashMap<String, String>>) -> S
 
         code.push_str("};\n\n");
     }
+
+    let mut sorted: Vec<&String> = languages.iter().collect();
+    sorted.sort_unstable();
+    code.push_str(&format!(
+        "pub static ALL_LOCALES: [&Locale; {}] = [\n",
+        sorted.len()
+    ));
+    for lang in &sorted {
+        code.push_str(&format!("    &{}_LOCALES,\n", const_name(lang)));
+    }
+    code.push_str("];\n\n");
 
     code.push_str("pub fn locale(name: &str) -> Option<&'static Locale> {\n");
     code.push_str("    hashify::tiny_map_ignore_case!(name.as_bytes(),\n");

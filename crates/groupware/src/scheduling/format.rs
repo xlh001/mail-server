@@ -342,28 +342,36 @@ impl TextFormatter {
             return;
         };
 
-        let nth = self.locale.calendar_rrule_nth_weekday;
-        let (before, rest) = nth.split_once("$ordinal").unwrap_or((nth, ""));
-        let (middle, after) = rest.split_once("$weekday").unwrap_or((rest, ""));
-
-        if occurrence < 0 {
+        let (wrap_before, wrap_after) = if occurrence < 0 {
             let from_end = self.locale.calendar_rrule_from_end;
-            let (wrap_before, wrap_after) =
-                from_end.split_once("$ordinal").unwrap_or((from_end, ""));
-            out.push_str(wrap_before);
-            out.push_str(before);
-            self.write_ordinal(out, occurrence.unsigned_abs() as u32);
-            out.push_str(middle);
-            self.write_weekday(out, day.weekday);
-            out.push_str(after);
-            out.push_str(wrap_after);
+            from_end.split_once("$ordinal").unwrap_or((from_end, ""))
         } else {
-            out.push_str(before);
-            self.write_ordinal(out, occurrence as u32);
-            out.push_str(middle);
-            self.write_weekday(out, day.weekday);
-            out.push_str(after);
+            ("", "")
+        };
+
+        out.push_str(wrap_before);
+
+        let mut rest = self.locale.calendar_rrule_nth_weekday;
+        loop {
+            let Some((at, placeholder)) = ["$ordinal", "$weekday"]
+                .into_iter()
+                .filter_map(|placeholder| rest.find(placeholder).map(|at| (at, placeholder)))
+                .min()
+            else {
+                out.push_str(rest);
+                break;
+            };
+
+            out.push_str(&rest[..at]);
+            if placeholder == "$ordinal" {
+                self.write_ordinal(out, occurrence.unsigned_abs() as u32);
+            } else {
+                self.write_weekday(out, day.weekday);
+            }
+            rest = &rest[at + placeholder.len()..];
         }
+
+        out.push_str(wrap_after);
     }
 }
 
@@ -427,6 +435,32 @@ mod tests {
             .expect("formatter")
             .recurrence(&mut out, rule);
         out
+    }
+
+    #[test]
+    fn every_shipped_locale_loads_icu_data() {
+        for locale in i18n::ALL_LOCALES {
+            let formatter = TextFormatter::new(locale.name)
+                .unwrap_or_else(|err| panic!("{}: {err:?}", locale.name));
+            assert_eq!(formatter.locale.name, locale.name);
+
+            let mut out = String::new();
+            formatter.recurrence(
+                &mut out,
+                &ICalendarRecurrenceRule {
+                    freq: ICalendarFrequency::Monthly,
+                    interval: Some(2),
+                    count: Some(5),
+                    bymonthday: vec![3, -1],
+                    byday: vec![ICalendarDay {
+                        ordwk: Some(2),
+                        weekday: ICalendarWeekday::Monday,
+                    }],
+                    ..Default::default()
+                },
+            );
+            assert!(!out.is_empty(), "{} produced no text", locale.name);
+        }
     }
 
     #[test]
