@@ -13,7 +13,7 @@ use crate::{
     },
     scheduling::{
         InstanceId, ItipError, ItipMessage, ItipSnapshots,
-        format::{TextFormatter, hyperlink},
+        format::{DateStyle, TextFormatter, hyperlink},
         ical_size,
         inbound::{
             MergeAction, MergeResult, itip_import_message, itip_merge_changes, itip_method,
@@ -968,7 +968,7 @@ fn build_rsvp_invitation(
     };
 
     for field in instance.build_summary(None, &[]) {
-        let value = formatter.field_to_string(&field.value, locale.calendar_date_template_long);
+        let value = formatter.field_to_string(&field.value, DateStyle::Long);
         if value.is_empty() {
             continue;
         }

@@ -16,7 +16,7 @@ use groupware::{
     calendar::itip::ItipIngest,
     scheduling::{
         ItipSummary, ItipValue,
-        format::{TextFormatter, hyperlink},
+        format::{DateStyle, TextFormatter, hyperlink},
     },
 };
 use mail_builder::{
@@ -438,7 +438,7 @@ pub async fn build_itip_template(
                 ICalendarProperty::Conference => locale.calendar_conference,
                 _ => continue,
             };
-            let value = formatter.field_to_string(&entry.value, locale.calendar_date_template_long);
+            let value = formatter.field_to_string(&entry.value, DateStyle::Long);
 
             let old_entry = old_entries.next();
 
@@ -482,7 +482,7 @@ pub async fn build_itip_template(
                 );
                 detail.insert(
                     CalendarTemplateVariable::OldValue,
-                    formatter.field_to_string(&old_entry.value, locale.calendar_date_template),
+                    formatter.field_to_string(&old_entry.value, DateStyle::Short),
                 );
             }
             details.push(detail);

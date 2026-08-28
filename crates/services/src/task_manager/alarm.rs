@@ -18,7 +18,7 @@ use groupware::{
     calendar::{ArchivedCalendarEvent, CalendarEvent},
     scheduling::{
         ItipTime, ItipValue,
-        format::{TextFormatter, hyperlink},
+        format::{DateStyle, TextFormatter, hyperlink},
     },
     strip_mailto_scheme,
 };
@@ -573,14 +573,14 @@ async fn build_template(
             start: alarm.event_start.timestamp(),
             tz_id: alarm.event_start_tz as u16,
         }),
-        locale.calendar_date_template,
+        DateStyle::Short,
     );
     let end = formatter.field_to_string(
         &ItipValue::Time(ItipTime {
             start: alarm.event_end.timestamp(),
             tz_id: alarm.event_end_tz as u16,
         }),
-        locale.calendar_date_template,
+        DateStyle::Short,
     );
     let subject = format!(
         "{}: {} @ {}",

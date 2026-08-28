@@ -19,24 +19,9 @@ mod tests {
     use super::{locale, locale_or_default};
 
     const LOCALES: [&str; 12] = [
-        "en_US", "es_ES", "fr_FR", "de_DE", "it_IT", "pt_PT", "nl_NL", "da_DK", "ca_ES", "el_GR",
-        "sv_SE", "pl_PL",
+        "en-US", "es-ES", "fr-FR", "de-DE", "it-IT", "pt-PT", "nl-NL", "da-DK", "ca-ES", "el-GR",
+        "sv-SE", "pl-PL",
     ];
-
-    #[test]
-    fn calendar_templates_include_minutes() {
-        for lang in LOCALES {
-            let locale = locale(lang).expect("locale must exist");
-            assert!(
-                locale.calendar_date_template.contains("%M"),
-                "{lang} calendar.date_template must include minutes"
-            );
-            assert!(
-                locale.calendar_date_template_long.contains("%M"),
-                "{lang} calendar.date_template_long must include minutes"
-            );
-        }
-    }
 
     #[test]
     fn locales_are_named_after_themselves() {
@@ -48,18 +33,18 @@ mod tests {
     #[test]
     fn bare_and_hyphenated_language_tags_resolve() {
         for (input, expected) in [
-            ("es_ES", "es_ES"),
-            ("es", "es_ES"),
-            ("es-ES", "es_ES"),
-            ("es_MX", "es_ES"),
-            ("pt-BR", "pt_PT"),
-            ("zz", "en_US"),
-            ("", "en_US"),
+            ("es-ES", "es-ES"),
+            ("es", "es-ES"),
+            ("es-MX", "es-ES"),
+            ("pt-BR", "pt-PT"),
+            ("zh-Hans", "en-US"),
+            ("zz", "en-US"),
+            ("", "en-US"),
             // BCP 47 tags are case-insensitive
-            ("ES", "es_ES"),
-            ("es_es", "es_ES"),
-            ("PT-br", "pt_PT"),
-            ("EL_GR", "el_GR"),
+            ("ES", "es-ES"),
+            ("es-es", "es-ES"),
+            ("PT-br", "pt-PT"),
+            ("EL-GR", "el-GR"),
         ] {
             assert_eq!(
                 locale_or_default(input).name,
