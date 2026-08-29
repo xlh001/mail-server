@@ -22,6 +22,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Calendar: Updated HTTP RSVP page.
 
 ## Fixed
+- S3: Fix outdated upstream `af-south-1` region configuration.
 
 ## [0.16.19] - 2026-08-24
 
