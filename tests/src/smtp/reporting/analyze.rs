@@ -5,7 +5,7 @@
  */
 
 use crate::{
-    smtp::{inbound::TestQueueEvent, session::TestSession},
+    smtp::session::TestSession,
     utils::server::TestServerBuilder,
 };
 use ahash::AHashMap;
@@ -237,7 +237,7 @@ async fn report_analyze() {
     session
         .send_message("john@test.org", &["bill@foobar.org"], "test:no_dkim", "250")
         .await;
-    test.read_event().await.assert_refresh();
+    test.expect_refresh().await;
     test.last_queued_message().await;
 
     // Messages sent to a report address that contain no report must be delivered
