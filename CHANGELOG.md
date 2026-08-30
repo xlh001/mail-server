@@ -22,6 +22,10 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Calendar: Updated HTTP RSVP page.
 
 ## Fixed
+- DANE:
+  - `TLSA` records are looked up whenever the MX RRset is signed, even when the MX host's own zone is not.
+  - Mandatory DANE failures are permanent rather than temporary, bouncing messages that should be delayed.
+  - Valid but unusable `TLSA` records fall back to the configured TLS strategy, permitting cleartext delivery where TLS is required.
 - S3: Fix outdated upstream `af-south-1` region configuration.
 - Setup wizard: SQL directories set to use the main data store are now validated against the data store being configured.
 - CardDAV: Delete default address book id when deleting the default address book.
