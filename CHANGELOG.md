@@ -16,7 +16,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - JMAP: `CalendarEvent/set` support for updating and deleting synthetic ids (#2925).
 - Calendar: 
   - Conference links in calendar invites and email alarms.
-  - Translations for Arabic (ar-SA), Brazilian Portuguese (pt-BR), Bulgarian (bg-BG), Chinese Simplified (zh-CN), Chinese Traditional (zh-TW), Croatian (hr-HR), Czech (cs-CZ), Finnish (fi-FI), Hebrew (he-IL), Hindi (hi-IN), Hungarian (hu-HU), Indonesian (id-ID), Japanese (ja-JP), Korean (ko-KR), Lithuanian (lt-LT), Norwegian Bokmål (nb-NO), Persian (fa-IR), Romanian (ro-RO), Russian (ru-RU), Slovak (sk-SK), Slovenian (sl-SI), Thai (th-TH), Turkish (tr-TR), Ukrainian (uk-UA) and Vietnamese (vi-VN).
+  - Translations for Arabic, Brazilian Portuguese, Bulgarian, Chinese Simplified, Chinese Traditional, Croatian, Czech, Finnish, Hebrew, Hindi, Hungarian, Indonesian, Japanese, Korean, Lithuanian, Norwegian Bokmål, Persian, Romanian, Russian, Slovak, Slovenian, Thai, Turkish, Ukrainian and Vietnamese.
 
 ## Changed
 - Calendar: Updated HTTP RSVP page.
@@ -31,7 +31,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - CardDAV: Delete default address book id when deleting the default address book.
 - Redis: Sentinel deployments configured with `rediss://` URLs now connect to the master over TLS instead of silently falling back to cleartext.
 - Message-ID: Generated `Message-ID` headers use the hostname of the node that built the message instead of the configured server hostname.
-- MTA: Do not send DMARC reports to local domains.
+- MTA: 
+  - Do not send DMARC reports to local domains.
+  - Messages addressed to an `inboundReportAddresses` match are only discarded when they actually contain a report (#1088).
 - Directory: Impersonation using the recovery admin fails when the impersonated account has not logged in before (LDAP and SQL directories).
 
 ## [0.16.19] - 2026-08-24
