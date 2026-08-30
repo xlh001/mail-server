@@ -29,6 +29,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - S3: Fix outdated upstream `af-south-1` region configuration.
 - Setup wizard: SQL directories set to use the main data store are now validated against the data store being configured.
 - CardDAV: Delete default address book id when deleting the default address book.
+- Redis: Sentinel deployments configured with `rediss://` URLs now connect to the master over TLS instead of silently falling back to cleartext.
 
 ## [0.16.19] - 2026-08-24
 
