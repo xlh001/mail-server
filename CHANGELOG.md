@@ -32,6 +32,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Redis: Sentinel deployments configured with `rediss://` URLs now connect to the master over TLS instead of silently falling back to cleartext.
 - Message-ID: Generated `Message-ID` headers use the hostname of the node that built the message instead of the configured server hostname.
 - MTA: Do not send DMARC reports to local domains.
+- Directory: Impersonation using the recovery admin fails when the impersonated account has not logged in before (LDAP and SQL directories).
 
 ## [0.16.19] - 2026-08-24
 
