@@ -11,8 +11,10 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Changed
 
 ## Fixed
-- LDAP: Active Directory servers that answer an unauthenticated bind (a non-empty DN with a zero-length password) with success no longer authenticate accounts without a password.
+- JMAP:
+  - `CalendarEvent/set` requests that ask for scheduling messages are rejected with a `forbidden` error when the account cannot send them.
 - IMAP: Every command in a pipelined `STATUS` or `FETCH` batch receives its tagged completion, instead of the first failing command dropping the responses for all commands queued behind it.
+- LDAP: Active Directory servers that answer an unauthenticated bind (a non-empty DN with a zero-length password) with success no longer authenticate accounts without a password.
 - Network: Listeners bound to the unspecified IPv6 address (`[::]`) fall back to IPv4 when socket creation fails with `EPROTONOSUPPORT`.
 
 ## [0.16.20] - 2026-08-30
