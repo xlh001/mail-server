@@ -19,6 +19,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - IMAP: Every command in a pipelined `STATUS` or `FETCH` batch receives its tagged completion, instead of the first failing command dropping the responses for all commands queued behind it.
 - WebDAV: Accounts without a storage quota no longer advertise a 4 GiB limit in `DAV:quota-available-bytes`.
 - iTIP: Detaching an occurrence that the recurrence rule already generates is sent as a `METHOD:REQUEST` carrying the `RECURRENCE-ID` instead of a `METHOD:ADD`.
+- Sieve: `fileinto :specialuse` and `specialuse_exists` accept special-use attributes in the `\Trash` form.
 - LDAP: Active Directory servers that answer an unauthenticated bind (a non-empty DN with a zero-length password) with success no longer authenticate accounts without a password.
 - Network: Listeners bound to the unspecified IPv6 address (`[::]`) fall back to IPv4 when socket creation fails with `EPROTONOSUPPORT`.
 
