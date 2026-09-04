@@ -14,6 +14,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - JMAP:
   - `CalendarEvent/set` requests that ask for scheduling messages are rejected with a `forbidden` error when the account cannot send them.
   - `Calendar/get` and `AddressBook/get` return every property when the `properties` argument is omitted or `null`.
+  - EventSource `ping` events advertise the interval in seconds rather than milliseconds.
 - IMAP: Every command in a pipelined `STATUS` or `FETCH` batch receives its tagged completion, instead of the first failing command dropping the responses for all commands queued behind it.
 - iTIP: Detaching an occurrence that the recurrence rule already generates is sent as a `METHOD:REQUEST` carrying the `RECURRENCE-ID` instead of a `METHOD:ADD`.
 - LDAP: Active Directory servers that answer an unauthenticated bind (a non-empty DN with a zero-length password) with success no longer authenticate accounts without a password.
