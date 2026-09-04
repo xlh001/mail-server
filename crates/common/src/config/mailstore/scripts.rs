@@ -135,7 +135,6 @@ impl Scripting {
             .with_max_variable_size(trusted.max_var_size as usize)
             .with_max_header_size(10240)
             .with_valid_notification_uri("mailto")
-            //.with_valid_ext_lists(stores.in_memory_stores.keys().map(|k| k.to_string()))
             .with_functions(&mut fnc_map_trusted)
             .with_max_redirects(trusted.max_redirects as usize)
             .with_max_out_messages(trusted.max_out_messages as usize)
@@ -222,19 +221,19 @@ impl Scripting {
                 .unwrap_or_default(),
             max_received_headers: untrusted.max_received_headers as usize,
             from_addr: bp.compile_expr(
-                ObjectType::SieveSystemScript.singleton(),
+                ObjectType::SieveSystemInterpreter.singleton(),
                 &trusted.ctx_default_from_address(),
             ),
             from_name: bp.compile_expr(
-                ObjectType::SieveSystemScript.singleton(),
+                ObjectType::SieveSystemInterpreter.singleton(),
                 &trusted.ctx_default_from_name(),
             ),
             return_path: bp.compile_expr(
-                ObjectType::SieveSystemScript.singleton(),
+                ObjectType::SieveSystemInterpreter.singleton(),
                 &trusted.ctx_default_return_path(),
             ),
             sign: bp.compile_expr(
-                ObjectType::SieveSystemScript.singleton(),
+                ObjectType::SieveSystemInterpreter.singleton(),
                 &trusted.ctx_dkim_sign_domain(),
             ),
             untrusted_sign,
