@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.16.21] - 2026-09-XX
+## [0.16.21] - 2026-09-06
 
 If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If you are upgrading from v0.15.x and below, please read the [upgrading documentation](https://github.com/stalwartlabs/stalwart/blob/main/UPGRADING/v0_16.md) for more information on how to upgrade from previous versions.
 
@@ -16,6 +16,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `CalendarEvent/set` requests that ask for scheduling messages are rejected with a `forbidden` error when the account cannot send them.
   - `Calendar/get` and `AddressBook/get` return every property when the `properties` argument is omitted or `null`.
   - EventSource `ping` events advertise the interval in seconds rather than milliseconds.
+  - Calendar synthetic ids returned when expanding recurrences identify an occurrence by its recurrence id.
 - IMAP: Every command in a pipelined `STATUS` or `FETCH` batch receives its tagged completion, instead of the first failing command dropping the responses for all commands queued behind it.
 - WebDAV: Accounts without a storage quota no longer advertise a 4 GiB limit in `DAV:quota-available-bytes`.
 - MTA: Inbound DMARC and TLS aggregate reports that a reporter sends more than once are imported again as a duplicate entry.
