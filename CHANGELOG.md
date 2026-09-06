@@ -23,6 +23,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Sieve: `fileinto :specialuse` and `specialuse_exists` accept special-use attributes in the `\Trash` form.
 - LDAP: Active Directory servers that answer an unauthenticated bind (a non-empty DN with a zero-length password) with success no longer authenticate accounts without a password.
 - Network: Listeners bound to the unspecified IPv6 address (`[::]`) fall back to IPv4 when socket creation fails with `EPROTONOSUPPORT`.
+- OpenTelemetry: log exporter does not include the parent span's attributes.
 
 ## [0.16.20] - 2026-08-30
 
