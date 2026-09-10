@@ -11,6 +11,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Changed
 
 ## Fixed
+- MTA: SMTP session state obtained before `STARTTLS` is discarded once the TLS handshake completes, as required by RFC 3207.
 
 ## [0.16.21] - 2026-09-06
 
