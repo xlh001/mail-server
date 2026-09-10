@@ -14,6 +14,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - WebDAV: `PROPFIND` responses do not declare the namespace of every requested property on the `DAV:multistatus` element.
 - MTA: SMTP session state obtained before `STARTTLS` is discarded once the TLS handshake completes, as required by RFC 3207.
 - iMIP: Notification subjects and bodies omit the event start date, time and timezone for recurring events.
+- OIDC: Discovery is retried for 30 seconds before the directory is marked as unavailable, so a provider that is still starting up no longer requires a restart.
 - WebUI: The cached bundle of an `Application` is discarded when its `resourceUrl` changes or the record is deleted, so the next unpack fetches the new resource.
 - Recovery mode: Automatic IP banning is disabled during recovery and initial setup.
 
