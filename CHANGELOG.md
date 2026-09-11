@@ -20,6 +20,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - WebUI: The cached bundle of an `Application` is discarded when its `resourceUrl` changes or the record is deleted, so the next unpack fetches the new resource.
 - DNS: Append `.` to MX record hostnames.
 - Recovery mode: Automatic IP banning is disabled during recovery and initial setup.
+- FoundationDB: The cached read version is invalidated when a queue refresh or registry change broadcast is received.
 
 ## [0.16.21] - 2026-09-06
 
