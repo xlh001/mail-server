@@ -31,6 +31,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - JMAP:
   - `CalendarEvent/set` stores `useDefaultAlerts` per user, and `CalendarEvent/get` returns `false` when it was never set.
   - `CalendarEvent/get` returns `null` for `baseEventId` unless the id is a synthetic recurrence instance.
+  - `CalendarEvent/get` returns `null` for requested `recurrenceRule` and `recurrenceOverrides` properties on synthetic recurrence instances.
 
 ## [0.16.21] - 2026-09-06
 

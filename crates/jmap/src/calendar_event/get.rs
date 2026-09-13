@@ -517,10 +517,28 @@ impl CalendarEventGet for Server {
                 let mut result = if return_all_properties {
                     jscal.into_object().unwrap()
                 } else {
-                    Map::from_iter(jscal.into_expanded_object().filter(|(k, _)| {
-                        k.as_property()
-                            .is_some_and(|p| jscal_properties.contains(p))
-                    }))
+                    let is_synthetic = id.is_synthetic();
+                    let is_null_for_synthetic = |property: &JSCalendarProperty<Id>| {
+                        is_synthetic
+                            && matches!(
+                                property,
+                                JSCalendarProperty::RecurrenceRule
+                                    | JSCalendarProperty::RecurrenceOverrides
+                            )
+                    };
+                    let mut result =
+                        Map::from_iter(jscal.into_expanded_object().filter(|(k, _)| {
+                            k.as_property().is_some_and(|p| {
+                                jscal_properties.contains(p) && !is_null_for_synthetic(p)
+                            })
+                        }));
+                    for property in jscal_properties
+                        .iter()
+                        .filter(|property| is_null_for_synthetic(property))
+                    {
+                        result.insert_unchecked(property.clone(), Value::Null);
+                    }
+                    result
                 };
 
                 for property in &jmap_properties {
