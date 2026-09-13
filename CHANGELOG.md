@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.16.22] - 2026-09-XX
+## [0.16.22] - 2026-09-13
 
 If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If you are upgrading from v0.15.x and below, please read the [upgrading documentation](https://github.com/stalwartlabs/stalwart/blob/main/UPGRADING/v0_16.md) for more information on how to upgrade from previous versions.
 
@@ -15,6 +15,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - MTA: 
   - SMTP session state obtained before `STARTTLS` is discarded once the TLS handshake completes, as required by RFC 3207.
   - Inbound throttle, outbound throttle and queue quota `match` expressions evaluate their `if`/`then` conditions.
+  - DMARC: Messages without an aligned SPF or DKIM pass from a domain that publishes a DMARC policy are reported as `fail` instead of `none` in logs.
+  - DMARC: A temporary DNS error on an SPF or DKIM check whose identifier aligns with the author domain produces `temperror` instead of `fail`.
+  - DMARC: A policy record without a `p` tag is only applied, as `p=none`, when it contains a `rua` tag, even if it declares `sp` or `np`.
 - iMIP: Notification subjects and bodies omit the event start date, time and timezone for recurring events.
 - OIDC: Discovery is retried for 30 seconds before the directory is marked as unavailable, so a provider that is still starting up no longer requires a restart.
 - WebUI: The cached bundle of an `Application` is discarded when its `resourceUrl` changes or the record is deleted, so the next unpack fetches the new resource.
