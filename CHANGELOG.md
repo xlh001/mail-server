@@ -21,6 +21,13 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - DNS: Append `.` to MX record hostnames.
 - Recovery mode: Automatic IP banning is disabled during recovery and initial setup.
 - FoundationDB: The cached read version is invalidated when a queue refresh or registry change broadcast is received.
+- IMAP:
+  - `SELECT`, `EXAMINE` and `STATUS` on a shared mailbox require the `r` (read) right.
+  - `AUTHENTICATE` is refused on clear-text connections unless `allowPlainTextAuth` is enabled, and the greeting and `CAPABILITY` response advertise `LOGINDISABLED` instead of the `AUTH=` mechanisms in that case.
+- IMAP, POP3, ManageSieve: Partial commands received before `STARTTLS` or `STLS` are discarded once the TLS handshake completes.
+- Network: Inbound TLS handshakes, both implicit and `STARTTLS`, are aborted after the listener's `tlsTimeout`, releasing the connection slot.
+- OAuth: A random key is used when the OIDC provider's `encryptionKey` or HMAC `signatureKey` cannot be read, instead of an empty key.
+- LDAP: The `{local}` and `{domain}` filter placeholders are escaped.
 
 ## [0.16.21] - 2026-09-06
 
