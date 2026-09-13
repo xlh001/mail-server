@@ -534,7 +534,11 @@ impl CalendarEventGet for Server {
                         JSCalendarProperty::BaseEventId => {
                             result.insert_unchecked(
                                 JSCalendarProperty::BaseEventId,
-                                Value::Element(JSCalendarValue::Id(id.document_id().into())),
+                                if id.is_synthetic() {
+                                    Value::Element(JSCalendarValue::Id(id.document_id().into()))
+                                } else {
+                                    Value::Null
+                                },
                             );
                         }
                         JSCalendarProperty::CalendarIds => {

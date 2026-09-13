@@ -185,6 +185,7 @@ pub async fn test(test: &TestServer) {
             MethodObject::CalendarEvent,
             [
                 JSCalendarProperty::<Id>::Id,
+                JSCalendarProperty::BaseEventId,
                 JSCalendarProperty::MayInviteSelf,
                 JSCalendarProperty::MayInviteOthers,
                 JSCalendarProperty::HideAttendees,
@@ -197,6 +198,7 @@ pub async fn test(test: &TestServer) {
         .await;
     response.list()[0].assert_is_equal(json!({
       "id": &event_1_id,
+      "baseEventId": null,
       "mayInviteSelf": true,
       "mayInviteOthers": true,
       "hideAttendees": true,
@@ -206,6 +208,7 @@ pub async fn test(test: &TestServer) {
     }));
     response.list()[1].assert_is_equal(json!({
       "id": &event_2_id,
+      "baseEventId": null,
       "mayInviteSelf": false,
       "mayInviteOthers": false,
       "hideAttendees": false,
@@ -215,6 +218,7 @@ pub async fn test(test: &TestServer) {
     }));
     response.list()[2].assert_is_equal(json!({
         "id": &event_3_id,
+        "baseEventId": null,
         "mayInviteSelf": false,
         "mayInviteOthers": false,
         "hideAttendees": false,
