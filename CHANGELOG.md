@@ -21,6 +21,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - DNS: Append `.` to MX record hostnames.
 - Recovery mode: Automatic IP banning is disabled during recovery and initial setup.
 - FoundationDB: The cached read version is invalidated when a queue refresh or registry change broadcast is received.
+- Sieve: Messages filed with `fileinto` by a user script are treated as ham and are no longer moved to Junk when classified as spam.
 - IMAP:
   - `SELECT`, `EXAMINE` and `STATUS` on a shared mailbox require the `r` (read) right.
   - `AUTHENTICATE` is refused on clear-text connections unless `allowPlainTextAuth` is enabled, and the greeting and `CAPABILITY` response advertise `LOGINDISABLED` instead of the `AUTH=` mechanisms in that case.
