@@ -605,7 +605,7 @@ impl CalendarEventGet for Server {
                                 Value::Bool(
                                     calendar_event
                                         .preferences(personal_id)
-                                        .is_none_or(|v| v.flags & PREF_USE_DEFAULT_ALERTS != 0),
+                                        .is_some_and(|v| v.flags & PREF_USE_DEFAULT_ALERTS != 0),
                                 ),
                             );
                         }

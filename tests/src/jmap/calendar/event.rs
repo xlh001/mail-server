@@ -91,7 +91,9 @@ pub async fn test(test: &TestServer) {
                 event_2
                     .clone()
                     .with_property(JSCalendarProperty::<Id>::UseDefaultAlerts, true),
-                event_3.clone(),
+                event_3
+                    .clone()
+                    .with_property(JSCalendarProperty::<Id>::UseDefaultAlerts, false),
                 event_4,
             ],
             Vec::<(&str, &str)>::new(),
@@ -186,6 +188,7 @@ pub async fn test(test: &TestServer) {
                 JSCalendarProperty::MayInviteSelf,
                 JSCalendarProperty::MayInviteOthers,
                 JSCalendarProperty::HideAttendees,
+                JSCalendarProperty::UseDefaultAlerts,
                 JSCalendarProperty::UtcStart,
                 JSCalendarProperty::UtcEnd,
             ],
@@ -197,6 +200,7 @@ pub async fn test(test: &TestServer) {
       "mayInviteSelf": true,
       "mayInviteOthers": true,
       "hideAttendees": true,
+      "useDefaultAlerts": false,
       "utcStart": "2006-01-02T15:00:00Z",
       "utcEnd": "2006-01-02T16:00:00Z"
     }));
@@ -205,6 +209,7 @@ pub async fn test(test: &TestServer) {
       "mayInviteSelf": false,
       "mayInviteOthers": false,
       "hideAttendees": false,
+      "useDefaultAlerts": true,
       "utcStart": "2006-01-02T17:00:00Z",
       "utcEnd": "2006-01-02T18:00:00Z"
     }));
@@ -213,6 +218,7 @@ pub async fn test(test: &TestServer) {
         "mayInviteSelf": false,
         "mayInviteOthers": false,
         "hideAttendees": false,
+        "useDefaultAlerts": false,
         "utcStart": "2006-01-04T15:00:00Z",
         "utcEnd": "2006-01-04T16:00:00Z"
     }));
@@ -318,6 +324,7 @@ pub async fn test(test: &TestServer) {
                         "mayInviteSelf": false,
                         "mayInviteOthers": false,
                         "hideAttendees": false,
+                        "useDefaultAlerts": true,
                         "description": null,
                         "title": "Event one",
                         "keywords": {"work": true},
@@ -332,6 +339,7 @@ pub async fn test(test: &TestServer) {
                             &calendar2_id: true
                         },
                         "title": "Event two",
+                        "useDefaultAlerts": false,
                         "description": "Updated description",
                         "recurrenceOverrides/2006-01-04T12:00:00/title":
                         "Event two overridden",
@@ -382,6 +390,7 @@ pub async fn test(test: &TestServer) {
                 JSCalendarProperty::MayInviteOthers,
                 JSCalendarProperty::MayInviteSelf,
                 JSCalendarProperty::HideAttendees,
+                JSCalendarProperty::UseDefaultAlerts,
                 JSCalendarProperty::IsDraft,
             ],
             [&event_1_id, &event_2_id, &event_3_id],
@@ -398,6 +407,7 @@ pub async fn test(test: &TestServer) {
       "mayInviteSelf": false,
       "mayInviteOthers": false,
       "hideAttendees": false,
+      "useDefaultAlerts": true,
       "title": "Event one",
       "start": "2006-01-02T10:00:00",
       "keywords": {
@@ -435,6 +445,7 @@ pub async fn test(test: &TestServer) {
             "mayInviteOthers": false,
             "mayInviteSelf": false,
             "hideAttendees": false,
+            "useDefaultAlerts": false,
             "isDraft": false
         }),
     );
@@ -464,6 +475,7 @@ pub async fn test(test: &TestServer) {
         "mayInviteOthers": false,
         "mayInviteSelf": false,
         "hideAttendees": false,
+        "useDefaultAlerts": false,
         "isDraft": false
     }));
 

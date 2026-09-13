@@ -28,6 +28,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Network: Inbound TLS handshakes, both implicit and `STARTTLS`, are aborted after the listener's `tlsTimeout`, releasing the connection slot.
 - OAuth: A random key is used when the OIDC provider's `encryptionKey` or HMAC `signatureKey` cannot be read, instead of an empty key.
 - LDAP: The `{local}` and `{domain}` filter placeholders are escaped.
+- JMAP: `CalendarEvent/set` stores `useDefaultAlerts` per user, and `CalendarEvent/get` returns `false` when it was never set.
 
 ## [0.16.21] - 2026-09-06
 
