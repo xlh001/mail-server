@@ -273,6 +273,20 @@ pub async fn test(test: &TestServer) {
         ]),
     );
 
+    let response = account
+        .jmap_method_calls(json!([[
+            "CalendarEvent/get",
+            {
+                "accountId": account.id_string(),
+                "properties": [],
+                "ids": [&event_2_id, &event_3_id],
+            },
+            "0"
+        ]]))
+        .await;
+    response.list()[0].assert_is_equal(json!({ "id": &event_2_id }));
+    response.list()[1].assert_is_equal(json!({ "id": &event_3_id }));
+
     // Creating an event without calendar should fail
     assert_eq!(
         account

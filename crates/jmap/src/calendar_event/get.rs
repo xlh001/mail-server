@@ -28,7 +28,7 @@ use groupware::{
 use jmap_proto::{
     method::get::{GetRequest, GetResponse},
     object::{JmapObjectId, calendar_event},
-    request::{IntoValid, reference::MaybeResultReference},
+    request::IntoValid,
 };
 use jmap_tools::{Key, Map, Value};
 use std::{borrow::Cow, str::FromStr};
@@ -60,10 +60,7 @@ impl CalendarEventGet for Server {
         mut request: GetRequest<calendar_event::CalendarEvent>,
         access_token: &AccessToken,
     ) -> trc::Result<GetResponse<calendar_event::CalendarEvent>> {
-        let return_all_properties = request
-            .properties
-            .as_ref()
-            .is_none_or(|v| matches!(v, MaybeResultReference::Value(v) if v.is_empty()));
+        let return_all_properties = request.properties.is_none();
         let properties = request.unwrap_properties(&[]);
         let account_id = request.account_id.document_id();
         let personal_id = access_token.personal_id(account_id, Collection::Calendar);
