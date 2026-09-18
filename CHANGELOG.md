@@ -11,6 +11,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Changed
 
 ## Fixed
+- WebUI: A failed update no longer takes an `Application` offline.
 
 ## [0.16.22] - 2026-09-13
 
