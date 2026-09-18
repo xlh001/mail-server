@@ -20,6 +20,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Troubleshoot tool:
   - MX records are resolved through the DNSSEC-validating resolver, matching the resolver used by the delivery path.
   - A TLSA lookup that fails or returns bogus records stops the delivery attempt for that host, instead of continuing without DANE.
+- OIDC: Bearer tokens that carry no `email`, `preferred_username` or `upn` claim are always authenticated against the default directory.
 - WebUI: A failed update no longer takes an `Application` offline.
 - FoundationDB: The cached read version is invalidated when any broadcast is received from another node.
 
