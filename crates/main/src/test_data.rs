@@ -57,7 +57,7 @@ pub async fn insert_test_data(server: &Server) {
             server.inner.data.queue_id_gen.generate(),
             QueueName::default(),
         );
-        assert!(qm.save_changes(server, None).await);
+        assert!(qm.save_changes(server, None, None).await);
     }
 
     for report in sample_tls_internal_reports() {
