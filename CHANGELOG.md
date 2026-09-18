@@ -11,6 +11,10 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Changed
 
 ## Fixed
+- DNS: The DNSSEC resolver queries a single nameserver at a time, working around a `hickory-resolver` race that cancels the TCP retry when two nameservers return a truncated response in parallel.
+- Troubleshoot tool:
+  - MX records are resolved through the DNSSEC-validating resolver, matching the resolver used by the delivery path.
+  - A TLSA lookup that fails or returns bogus records stops the delivery attempt for that host, instead of continuing without DANE.
 - WebUI: A failed update no longer takes an `Application` offline.
 
 ## [0.16.22] - 2026-09-13
