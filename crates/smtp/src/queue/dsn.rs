@@ -13,6 +13,7 @@ use crate::inbound::dkim::DkimSign;
 use crate::queue::spool::QueueParams;
 use crate::queue::{MessageWrapper, UnexpectedResponse};
 use common::Server;
+use email::message::delivery::ORCPT_ADDR_TYPE;
 use mail_builder::MessageBuilder;
 use mail_builder::headers::HeaderType;
 use mail_builder::headers::content_type::ContentType;
@@ -523,7 +524,7 @@ impl Message {
 impl Recipient {
     fn write_dsn(&self, dsn: &mut String) {
         if let Some(orcpt) = &self.orcpt {
-            let _ = write!(dsn, "Original-Recipient: rfc822;{orcpt}\r\n");
+            let _ = write!(dsn, "Original-Recipient: {ORCPT_ADDR_TYPE}{orcpt}\r\n");
         }
         let _ = write!(dsn, "Final-Recipient: rfc822;{}\r\n", self.address);
     }

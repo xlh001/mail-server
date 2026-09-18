@@ -163,7 +163,7 @@ fn sample_queued_messages(blob_hashes: Vec<BlobHash>) -> Vec<Message> {
                         },
                     }),
                     flags: RCPT_DSN_SENT,
-                    orcpt: Some("rfc822;bob@example.org".into()),
+                    orcpt: Some("bob@example.org".into()),
                 },
             ],
             received_from_ip: std::net::IpAddr::V4(Ipv4Addr::new(192, 168, 1, 10)),
