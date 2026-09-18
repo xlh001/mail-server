@@ -16,6 +16,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - MX records are resolved through the DNSSEC-validating resolver, matching the resolver used by the delivery path.
   - A TLSA lookup that fails or returns bogus records stops the delivery attempt for that host, instead of continuing without DANE.
 - WebUI: A failed update no longer takes an `Application` offline.
+- FoundationDB: The cached read version is invalidated when any broadcast is received from another node.
 
 ## [0.16.22] - 2026-09-13
 
