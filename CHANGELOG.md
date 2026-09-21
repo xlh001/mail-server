@@ -21,6 +21,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - `TOP msg n` counts the `n` lines from the first byte of the message instead of from the first byte of the body.
   - A message whose very first line begins with `.` is not byte-stuffed.
 - Sieve: `envelope "orcpt"` yields the bare address for an `ORCPT` supplied over SMTP. It now carries the `addr-type` prefix in every case, as required by RFC 6009.
+- ACME: The `_acme-challenge` TXT records published for a DNS-01 authorization are never removed.
 - DNS: The DNSSEC resolver queries a single nameserver at a time, working around a `hickory-resolver` race that cancels the TCP retry when two nameservers return a truncated response in parallel.
 - Troubleshoot tool:
   - MX records are resolved through the DNSSEC-validating resolver, matching the resolver used by the delivery path.
