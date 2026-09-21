@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.16.23] - 2026-09-XX
+## [0.16.23] - 2026-09-21
 
 If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If you are upgrading from v0.15.x and below, please read the [upgrading documentation](https://github.com/stalwartlabs/stalwart/blob/main/UPGRADING/v0_16.md) for more information on how to upgrade from previous versions.
 
@@ -20,6 +20,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - POP3:
   - `TOP msg n` counts the `n` lines from the first byte of the message instead of from the first byte of the body.
   - A message whose very first line begins with `.` is not byte-stuffed.
+- Spam filter: Moving or copying a message from one account into another creates no training sample, so the classifier never learns from it.
 - Sieve: `envelope "orcpt"` yields the bare address for an `ORCPT` supplied over SMTP. It now carries the `addr-type` prefix in every case, as required by RFC 6009.
 - ACME: The `_acme-challenge` TXT records published for a DNS-01 authorization are never removed.
 - DNS: The DNSSEC resolver queries a single nameserver at a time, working around a `hickory-resolver` race that cancels the TCP retry when two nameservers return a truncated response in parallel.
