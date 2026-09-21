@@ -30,6 +30,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - OIDC: Bearer tokens that carry no `email`, `preferred_username` or `upn` claim are always authenticated against the default directory.
 - WebUI: A failed update no longer takes an `Application` offline.
 - FoundationDB: The cached read version is invalidated when any broadcast is received from another node.
+- Redis:
+  - On a cluster, the rate limiter and the blob upload quota issue `INCR` and `EXPIRE` as a `MULTI`/`EXEC` transaction, whose `MOVED` redirects collapse into a single `EXECABORT` that never refreshes the slot map.
+  - A connection that fails because it is addressing the wrong server is returned to the pool and reused, since the recycle check only issues `PING`.
 
 ## [0.16.22] - 2026-09-13
 
