@@ -184,32 +184,29 @@ async fn update_spam_rules(server: &Server) -> trc::Result<TaskResult> {
         apply_upstream(registry, rules.key_lookups).await?,
     ];
 
-    if settings.iter().any(RuleUpdateResult::has_changes) {
-        if let Err(err) =
-            Box::pin(server.reload_registry(RegistryChange::Reload(ObjectType::SpamRule))).await
-        {
-            trc::error!(err.details("Failed to reload registry after updating spam rules"));
+    let mut reload_errors = Vec::new();
+    for object in [
+        settings
+            .iter()
+            .any(RuleUpdateResult::has_changes)
+            .then_some(ObjectType::SpamRule),
+        lookups
+            .iter()
+            .any(RuleUpdateResult::has_changes)
+            .then_some(ObjectType::MemoryLookupKey),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if let Err(reason) = reload_and_broadcast(server, object).await {
+            reload_errors.push(reason);
         }
-        server
-            .cluster_broadcast(BroadcastEvent::RegistryChange(RegistryChange::Reload(
-                ObjectType::SpamRule,
-            )))
-            .await;
     }
-
-    if lookups.iter().any(RuleUpdateResult::has_changes) {
-        if let Err(err) =
-            Box::pin(server.reload_registry(RegistryChange::Reload(ObjectType::MemoryLookupKey)))
-                .await
-        {
-            trc::error!(err.details("Failed to reload registry after updating spam rules"));
-        }
-        server
-            .cluster_broadcast(BroadcastEvent::RegistryChange(RegistryChange::Reload(
-                ObjectType::MemoryLookupKey,
-            )))
-            .await;
-    }
+    let failed: usize = settings
+        .iter()
+        .chain(&lookups)
+        .map(|result| result.failed)
+        .sum();
 
     trc::event!(
         Spam(SpamEvent::RulesUpdated),
@@ -229,7 +226,40 @@ async fn update_spam_rules(server: &Server) -> trc::Result<TaskResult> {
         Elapsed = started.elapsed(),
     );
 
-    Ok(TaskResult::Success(vec![]))
+    if !reload_errors.is_empty() {
+        Ok(TaskResult::permanent(format!(
+            "Spam rules were stored but not activated ({}); fix the logged errors and run Reload settings",
+            reload_errors.join("; ")
+        )))
+    } else if failed > 0 {
+        Ok(TaskResult::permanent(format!(
+            "{failed} spam filter objects failed to import or update"
+        )))
+    } else {
+        Ok(TaskResult::Success(vec![]))
+    }
+}
+
+async fn reload_and_broadcast(server: &Server, object: ObjectType) -> Result<(), String> {
+    match Box::pin(server.reload_registry(RegistryChange::Reload(object))).await {
+        Ok(result) => {
+            result.log();
+            if result.has_errors() {
+                return Err(format!("{} configuration errors", result.errors.len()));
+            }
+            server
+                .cluster_broadcast(BroadcastEvent::RegistryChange(RegistryChange::Reload(
+                    object,
+                )))
+                .await;
+            Ok(())
+        }
+        Err(err) => {
+            let reason = err.to_string();
+            trc::error!(err.details("Failed to reload registry after updating spam rules"));
+            Err(reason)
+        }
+    }
 }
 
 async fn apply_upstream<T: UpstreamObject>(

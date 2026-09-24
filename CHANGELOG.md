@@ -17,6 +17,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - URL shortener links are followed using the lowercased URL, so case-sensitive short links resolve to the wrong destination or not at all.
   - Incremental training never advances its position past the first run, so every retained sample added since then is trained again, and counted again in the reservoir, on each run until it expires.
   - Updating the rules only adds new objects, so upstream changes to existing rules, DNSBL servers, HTTP lookups, lookup keys and file extensions never reach an existing installation.
+  - Updating the rules reports success when objects fail to import, or when a configuration error stops the updated settings from being activated.
 
 ## [0.16.23] - 2026-09-21
 
