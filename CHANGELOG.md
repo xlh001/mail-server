@@ -15,6 +15,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 - Spam filter:
   - OpenPhish and PhishTank entries containing uppercase characters never match, since message URLs are lowercased while HTTP lookup entries keep their original case. HTTP lookups now match keys case-insensitively.
   - URL shortener links are followed using the lowercased URL, so case-sensitive short links resolve to the wrong destination or not at all.
+  - Incremental training never advances its position past the first run, so every retained sample added since then is trained again, and counted again in the reservoir, on each run until it expires.
 
 ## [0.16.23] - 2026-09-21
 
