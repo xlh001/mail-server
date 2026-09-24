@@ -12,6 +12,9 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 
 ## Fixed
 - Troubleshoot tool: `TLSA` records are looked up for every MX host, including hosts whose zone is not DNSSEC signed.
+- Spam filter:
+  - OpenPhish and PhishTank entries containing uppercase characters never match, since message URLs are lowercased while HTTP lookup entries keep their original case. HTTP lookups now match keys case-insensitively.
+  - URL shortener links are followed using the lowercased URL, so case-sensitive short links resolve to the wrong destination or not at all.
 
 ## [0.16.23] - 2026-09-21
 
