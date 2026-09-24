@@ -23,6 +23,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - A push notification retried after a failed delivery can report an older state than a change queued during the failed attempt, since the older state changes are merged last and overwrite the newer ones.
   - Changes made while a push request is in flight are not delivered until the next change reaches the same subscription, since a successful delivery cancels the pending retry.
   - The VAPID `aud` claim is derived from a hand-written parse of the push URL, so a crafted push URL can make the server sign a token for a push service other than the one the request is sent to.
+  - `Email/import` rejects a `blobId` that refers to a `Blob/upload` creation id in the same request (`"#u0"`) with `Invalid blob id.`.
 
 ## [0.16.23] - 2026-09-21
 
