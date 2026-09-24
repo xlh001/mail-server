@@ -722,15 +722,8 @@ impl QueuedMessage {
                     let time = Instant::now();
                     let strict = tls_strategy.is_dane_required();
 
-                    let (dnssec_status, dnssec_entity) = match remote_host.dnssec_status() {
-                        DnssecStatus::Secure => match addresses_dnssec_status {
-                            status @ (DnssecStatus::Insecure | DnssecStatus::Bogus) => {
-                                (status, "A/AAAA")
-                            }
-                            _ => (DnssecStatus::Secure, "MX"),
-                        },
-                        status => (status, "MX"),
-                    };
+                    let (dnssec_status, dnssec_entity) =
+                        remote_host.dane_status(addresses_dnssec_status);
 
                     match dnssec_status {
                         DnssecStatus::Secure => {

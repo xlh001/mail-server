@@ -11,6 +11,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
 ## Changed
 
 ## Fixed
+- Troubleshoot tool: `TLSA` records are looked up for every MX host, including hosts whose zone is not DNSSEC signed.
 
 ## [0.16.23] - 2026-09-21
 
