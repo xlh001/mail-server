@@ -357,6 +357,23 @@ impl NextHop<'_> {
         }
     }
 
+    fn with_dnssec_status(&self, dnssec_status: DnssecStatus) -> Self {
+        match self {
+            NextHop::MX {
+                is_implicit,
+                host,
+                config,
+                ..
+            } => NextHop::MX {
+                is_implicit: *is_implicit,
+                host,
+                config,
+                dnssec_status,
+            },
+            NextHop::Relay(relay) => NextHop::Relay(relay),
+        }
+    }
+
     pub fn dane_status(&self, addresses: DnssecStatus) -> (DnssecStatus, &'static str) {
         match self.dnssec_status() {
             DnssecStatus::Secure => match addresses {
