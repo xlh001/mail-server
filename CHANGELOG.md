@@ -18,6 +18,11 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - Incremental training never advances its position past the first run, so every retained sample added since then is trained again, and counted again in the reservoir, on each run until it expires.
   - Updating the rules only adds new objects, so upstream changes to existing rules, DNSBL servers, HTTP lookups, lookup keys and file extensions never reach an existing installation.
   - Updating the rules reports success when objects fail to import, or when a configuration error stops the updated settings from being activated.
+- JMAP:
+  - A `PushSubscription` created within the verification rate limit window of another one on the same account never receives its `PushVerification`, since the blocked verification is dropped instead of being sent once the window expires.
+  - A push notification retried after a failed delivery can report an older state than a change queued during the failed attempt, since the older state changes are merged last and overwrite the newer ones.
+  - Changes made while a push request is in flight are not delivered until the next change reaches the same subscription, since a successful delivery cancels the pending retry.
+  - The VAPID `aud` claim is derived from a hand-written parse of the push URL, so a crafted push URL can make the server sign a token for a push service other than the one the request is sent to.
 
 ## [0.16.23] - 2026-09-21
 
