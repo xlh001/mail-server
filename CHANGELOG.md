@@ -29,6 +29,7 @@ If you are upgrading from v0.16.x, replace the binary (or run `docker pull`). If
   - A node without the `outboundMta` role stops replying to `DATA` and to JMAP submissions once about 1024 messages have been queued on it.
   - MX records are resolved through the DNSSEC-validating resolver even when DANE is disabled.
 - MySQL: Range deletions and search index removals start with a single unbounded `DELETE` and switch to chunks only after a timeout.
+- Autodiscover: Implicit TLS ports (993, 995, 465) are advertised with `<Encryption>TLS</Encryption>`, which Outlook reads as STARTTLS.
 
 ## [0.16.23] - 2026-09-21
 
